@@ -2,6 +2,21 @@
   width: 100%;
   margin: 0;
   padding: 0;
+  font-family: "Helvetica", "Arial", sans-serif;
+  /* Set global font */
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+:root {
+  --card-margin: 15vw;
+  /* Configurable margin */
 }
 
 .map-container {
@@ -11,52 +26,107 @@
   width: 100vw;
   height: 100vh;
   z-index: 0;
-  /* Changed from -1 to 0 to allow interaction */
 }
 
 .content-container {
   position: relative;
   z-index: 10;
-  /* Ensure content is above map */
   width: 100%;
   min-height: 100vh;
   pointer-events: none;
-  /* Let clicks pass through to map */
   display: flex;
   flex-direction: column;
-  align-items: center;
-  /* Center cards */
-  padding-top: 50vh;
-  /* Start content lower down */
+  /* align-items: center; Removed to allow individual alignment */
+  /* padding-top: 50vh; REMOVED to prevent overflow above strip */
   padding-bottom: 50vh;
 }
 
+/* Base card style */
 .section {
   width: 80%;
   max-width: 600px;
   min-height: 200px;
-  /* Adjust height */
-  margin-bottom: 50vh;
-  /* Space between cards */
+  margin-bottom: 10vh;
 
+  align-self: center;
+  /* Default to center */
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 
-  background: rgba(255, 255, 255, 0.1);
-  /* Glassmorphism */
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-
   font-size: 1.5rem;
-  color: white;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  color: #333;
+  /* Darker text for better contrast on white cards */
   pointer-events: auto;
-  /* Re-enable pointer events for content */
   padding: 2rem;
   text-align: center;
+  border-radius: 16px;
+  /* Rounded corners like the skeleton */
+}
+
+/* Alignment Modifiers */
+.card-left {
+  align-self: flex-start;
+  margin-left: var(--card-margin);
+  /* Margin from left edge */
+}
+
+.card-right {
+  align-self: flex-end;
+  margin-right: var(--card-margin);
+  /* Margin from right edge */
+}
+
+/* Filled Card Style (Glass/Solid) */
+.card-filled {
+  background: rgba(255, 255, 255, 0.9);
+  /* High opacity white */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: none;
+}
+
+/* Transparent Card Style (Text Only) */
+.card-transparent {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: #333;
+  /* Ensure text is readable against the white strip */
+}
+
+/* Outlined Card Style (Border only) */
+.card-outlined {
+  background: transparent;
+  border: 4px solid #333;
+  /* Thick dark border */
+  color: #333;
+  /* Add a text shadow or background for readability if needed over map */
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+}
+
+/* Title specific style */
+h1 {
+  font-weight: bold;
+  letter-spacing: -1px;
+  /* Tight tracking like Helvetica titles often have */
+  margin: 0;
+  position: relative;
+  /* Ensure title sits above the strip */
+  z-index: 2;
+}
+
+.gradient-strip {
+  position: absolute;
+  width: 100%;
+  /* Full width of parent */
+  left: 50%;
+  transform: translateX(-50%);
+  /* Center horizontally relative to parent */
+  z-index: 1;
+  /* Behind text (z-index 2) but inside card */
+
+  /* Background is now handled via inline styles in the component */
+
+  pointer-events: none;
 }
