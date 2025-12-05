@@ -6,6 +6,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import './App.css'
 import GradientStrip from './GradientStrip';
 import MapInteractionWrapper from './MapInteractionWrapper';
+import SubwayLines from './SubwayLines';
 
 const chapters = {
   'intro': {
@@ -128,7 +129,16 @@ function App() {
         <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
           {/* Gradient Strip covering the whole sequence */}
-          {/* Gradient Strip covering the whole sequence */}
+          <SubwayLines
+            lines={[
+              { color: '#FF9900', width: 8, stops: ['intro', 'path-control-1', 'intro-2', 'metro-1', 'metro-3'] }, // Orange Line (Right side mainly)
+              { color: '#003399', width: 8, stops: ['intro', 'intro-1', 'intro-3', 'metro-2'] }  // Blue Line (Left side mainly)
+            ]}
+          />
+
+          {/* Ghost Control Point for Orange Line */}
+          <div id="path-control-1" style={{ position: 'absolute', top: '70vh', right: '10vw', width: '10px', height: '10px', pointerEvents: 'none' }} />
+
           <MapInteractionWrapper onBlock={handleMouseEnter} onUnblock={handleMouseLeave}>
             <GradientStrip
               topEdge="hard"
@@ -181,7 +191,6 @@ function App() {
               <p>Moradora de Camaragibe, mais precisamente do bairro de Alberto Maia, “o final de Camaragibe”, como ela mesma costuma dizer, Mirelly desperta às cinco da manhã. Não há luxo de tempo. Ela corre para se arrumar, tomar banho e comer alguma coisa antes de sair. Acordar mais cedo significaria abrir mão de quinze minutinhos daquele sono que, para uma rotina como a dela, vale ouro. Às 5:50, ela tranca a porta e desce a rua rumo à Estação Camaragibe. É o início de mais um dia igual aos outros.</p>
             </div>
           </MapInteractionWrapper>
-
         </div>
 
         {/* Card 4: Metro 1 (Right) */}
