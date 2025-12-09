@@ -11,6 +11,7 @@ import SubwayLines from './SubwayLines';
 import { preloadChapter } from './preloadUtils';
 import AlarmScreen from './AlarmScreen';
 
+
 preloadChapter('intro');
 
 
@@ -81,8 +82,14 @@ function App() {
   const mapContainerRef = useRef()
 
   // Control Alarm visibility
-  const [showAlarm, setShowAlarm] = useState(true);
-  const alarmVisibleRef = useRef(true);
+  const [showAlarm, setShowAlarm] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const alarmParam = params.get('alarm');
+    if (alarmParam !== null) return alarmParam === 'true';
+    // Default: False in Dev, True in Prod
+    return !import.meta.env.DEV;
+  });
+  const alarmVisibleRef = useRef(showAlarm);
 
   useEffect(() => {
     alarmVisibleRef.current = showAlarm;
@@ -416,7 +423,6 @@ function App() {
 
       <MapInteractionContext.Provider value={{ isInteractionBlocked, setInteractionBlocked }}>
         <div className='map-container' ref={mapContainerRef} />
-
         <div className="content-container">
           {/* Intro Sequence Wrapper */}
           <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -475,6 +481,9 @@ function App() {
               </div>
             </InteractionBlocker>
 
+            {/* START TRANSPARENT SECTION */}
+
+
             {/* TRIGGER: INTRO-2 */}
             <MapTrigger id="intro-2" />
 
@@ -502,51 +511,52 @@ function App() {
                 <p>Moradora de Camaragibe, mais precisamente do bairro de Alberto Maia, “o final de Camaragibe”, como ela mesma costuma dizer, Mirelly desperta às cinco da manhã. Não há luxo de tempo. Ela corre para se arrumar, tomar banho e comer alguma coisa antes de sair. Acordar mais cedo significaria abrir mão de quinze minutinhos daquele sono que, para uma rotina como a dela, vale ouro. Às 5:50, ela tranca a porta e desce a rua rumo à Estação Camaragibe. É o início de mais um dia igual aos outros.</p>
               </div>
             </InteractionBlocker>
+
+
+            {/* TRIGGER: METRO-1 */}
+            <MapTrigger id="metro-1" />
+
+            {/* Card 4: Metro 1 (Right) */}
+            <InteractionBlocker>
+              <div
+                className="section card-filled card-right"
+                id="station-metro-1"
+                style={{ pointerEvents: 'auto' }}
+              >
+                <p>Ela pega o metrô na última estação da Linha Centro às 6h10. Mirelly segue todo o percurso até a Estação Recife, espremida entre mochilas, cotovelos e sonos acumulados. Lá se vão uma hora e dez minutos.</p>
+              </div>
+            </InteractionBlocker>
+
+            {/* TRIGGER: METRO-2 */}
+            <MapTrigger id="metro-2" />
+
+            {/* Card 5: Metro 2 (Left) */}
+            <InteractionBlocker>
+              <div
+                className="section card-filled card-left"
+                id="station-metro-2"
+                style={{ pointerEvents: 'auto' }}
+              >
+                <p>De vez em quando, ela tenta olhar pela janela, procurando um fiapo de paisagem por cima das dezenas, às vezes centenas de cabeças que lotam o metrô. Mas a vista quase nunca aparece. O caminho, no entanto, ela já sabe de cor.</p>
+              </div>
+            </InteractionBlocker>
+
+            {/* TRIGGER: METRO-3 */}
+            <MapTrigger id="metro-3" />
+
+            {/* Card 6: Metro 3 (Right) */}
+            <InteractionBlocker>
+              <div
+                className="section card-filled card-right"
+                id="station-metro-3"
+                style={{ pointerEvents: 'auto' }}
+              >
+                <p>Segundo o Relatório Global de Transporte Público da Moovit (2024), o recifense passa, em média, 64 minutos dentro do ônibus ou metrô a cada trecho. Tempo que Mirelly já tinha deixado para trás só no primeiro sprint da sua maratona diária pela cidade.</p>
+              </div>
+            </InteractionBlocker>
           </div>
-
-          {/* TRIGGER: METRO-1 */}
-          <MapTrigger id="metro-1" />
-
-          {/* Card 4: Metro 1 (Right) */}
-          <InteractionBlocker>
-            <div
-              className="section card-filled card-right"
-              id="station-metro-1"
-              style={{ pointerEvents: 'auto' }}
-            >
-              <p>Ela pega o metrô na última estação da Linha Centro às 6h10. Mirelly segue todo o percurso até a Estação Recife, espremida entre mochilas, cotovelos e sonos acumulados. Lá se vão uma hora e dez minutos.</p>
-            </div>
-          </InteractionBlocker>
-
-          {/* TRIGGER: METRO-2 */}
-          <MapTrigger id="metro-2" />
-
-          {/* Card 5: Metro 2 (Left) */}
-          <InteractionBlocker>
-            <div
-              className="section card-filled card-left"
-              id="station-metro-2"
-              style={{ pointerEvents: 'auto' }}
-            >
-              <p>De vez em quando, ela tenta olhar pela janela, procurando um fiapo de paisagem por cima das dezenas, às vezes centenas de cabeças que lotam o metrô. Mas a vista quase nunca aparece. O caminho, no entanto, ela já sabe de cor.</p>
-            </div>
-          </InteractionBlocker>
-
-          {/* TRIGGER: METRO-3 */}
-          <MapTrigger id="metro-3" />
-
-          {/* Card 6: Metro 3 (Right) */}
-          <InteractionBlocker>
-            <div
-              className="section card-filled card-right"
-              id="station-metro-3"
-              style={{ pointerEvents: 'auto' }}
-            >
-              <p>Segundo o Relatório Global de Transporte Público da Moovit (2024), o recifense passa, em média, 64 minutos dentro do ônibus ou metrô a cada trecho. Tempo que Mirelly já tinha deixado para trás só no primeiro sprint da sua maratona diária pela cidade.</p>
-            </div>
-          </InteractionBlocker>
         </div>
-      </MapInteractionContext.Provider>
+      </MapInteractionContext.Provider >
     </>
   )
 }
