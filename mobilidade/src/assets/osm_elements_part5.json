@@ -1,0 +1,515 @@
+{
+  "type": "FeatureCollection",
+  "generator": "overpass-turbo",
+  "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL.",
+  "timestamp": "2025-12-10T02:07:14Z",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/87786800",
+        "dual_carriageway": "yes",
+        "highway": "secondary",
+        "lanes": "4",
+        "name": "Avenida Sul",
+        "oneway": "yes",
+        "postal_code": "50090-010",
+        "ref": "PE-007;PE-008;PE-009",
+        "source:postal_code": "CNEFE",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -34.8786836,
+            -8.0721024
+          ],
+          [
+            -34.8774587,
+            -8.0716236
+          ]
+        ]
+      },
+      "id": "way/87786800"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/128929018",
+        "flood_prone": "yes",
+        "highway": "tertiary",
+        "lanes": "2",
+        "name": "Rua do Peixoto",
+        "oneway": "yes",
+        "postal_code": "50020-180",
+        "source:postal_code": "CNEFE"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -34.8849616,
+            -8.0702295
+          ],
+          [
+            -34.8838797,
+            -8.0709604
+          ]
+        ]
+      },
+      "id": "way/128929018"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/603542068",
+        "highway": "secondary",
+        "lanes": "3",
+        "name": "Avenida Sul",
+        "oneway": "yes",
+        "postal_code": "50090-010",
+        "ref": "PE-007;PE-008",
+        "source:postal_code": "CNEFE",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -34.8805909,
+            -8.07236
+          ],
+          [
+            -34.8805186,
+            -8.0723512
+          ],
+          [
+            -34.8804865,
+            -8.0723473
+          ],
+          [
+            -34.8804173,
+            -8.0723389
+          ],
+          [
+            -34.8802145,
+            -8.0723142
+          ],
+          [
+            -34.8801757,
+            -8.0723094
+          ],
+          [
+            -34.8801604,
+            -8.0723076
+          ],
+          [
+            -34.8801172,
+            -8.0723023
+          ],
+          [
+            -34.879788,
+            -8.072269
+          ]
+        ]
+      },
+      "id": "way/603542068"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/678493300",
+        "highway": "secondary",
+        "lanes": "2",
+        "name": "Avenida Dantas Barreto",
+        "oneway": "yes",
+        "postal_code": "50020-000",
+        "psv": "designated",
+        "source:postal_code": "CNEFE",
+        "surface": "paved",
+        "vehicle": "no"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -34.8840877,
+            -8.0722986
+          ],
+          [
+            -34.8841354,
+            -8.0723594
+          ],
+          [
+            -34.8841595,
+            -8.0723884
+          ],
+          [
+            -34.8842267,
+            -8.0724642
+          ],
+          [
+            -34.8844137,
+            -8.0727046
+          ],
+          [
+            -34.8846401,
+            -8.0729568
+          ],
+          [
+            -34.8848405,
+            -8.0731803
+          ],
+          [
+            -34.8848862,
+            -8.0732112
+          ],
+          [
+            -34.88496,
+            -8.0732609
+          ],
+          [
+            -34.8850969,
+            -8.0733251
+          ]
+        ]
+      },
+      "id": "way/678493300"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/678493301",
+        "highway": "secondary",
+        "lanes": "3",
+        "name": "Avenida Sul",
+        "oneway": "yes",
+        "postal_code": "51030-171",
+        "ref": "PE-007;PE-008",
+        "source:postal_code": "CNEFE",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -34.8850969,
+            -8.0733251
+          ],
+          [
+            -34.8847132,
+            -8.0733028
+          ],
+          [
+            -34.8841882,
+            -8.0732781
+          ],
+          [
+            -34.8837737,
+            -8.0732237
+          ],
+          [
+            -34.8832594,
+            -8.0730861
+          ],
+          [
+            -34.8832427,
+            -8.0730816
+          ],
+          [
+            -34.8826097,
+            -8.0728665
+          ],
+          [
+            -34.8825373,
+            -8.0728386
+          ],
+          [
+            -34.8824461,
+            -8.0728107
+          ],
+          [
+            -34.8819619,
+            -8.0726594
+          ],
+          [
+            -34.8818479,
+            -8.0726248
+          ],
+          [
+            -34.8815247,
+            -8.0725396
+          ]
+        ]
+      },
+      "id": "way/678493301"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/703556851",
+        "highway": "secondary",
+        "lanes": "2",
+        "name": "Rua Floriano Peixoto",
+        "oneway": "yes",
+        "postal_code": "50020-068",
+        "source:postal_code": "CNEFE",
+        "surface": "paved"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -34.8841091,
+            -8.068987
+          ],
+          [
+            -34.8844662,
+            -8.0695144
+          ],
+          [
+            -34.8848416,
+            -8.0700474
+          ],
+          [
+            -34.8849616,
+            -8.0702295
+          ]
+        ]
+      },
+      "id": "way/703556851"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/703556855",
+        "highway": "secondary",
+        "lanes": "3",
+        "name": "Avenida Sul",
+        "oneway": "yes",
+        "postal_code": "51030-171",
+        "ref": "PE-007;PE-008",
+        "source:postal_code": "CNEFE",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -34.8811874,
+            -8.0724732
+          ],
+          [
+            -34.8809648,
+            -8.072433
+          ],
+          [
+            -34.8807449,
+            -8.0723931
+          ],
+          [
+            -34.8805909,
+            -8.07236
+          ]
+        ]
+      },
+      "id": "way/703556855"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/704217501",
+        "flood_prone": "yes",
+        "highway": "tertiary",
+        "lanes": "2",
+        "name": "Rua do Peixoto",
+        "oneway": "yes",
+        "postal_code": "50020-180",
+        "source:postal_code": "CNEFE"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -34.8838797,
+            -8.0709604
+          ],
+          [
+            -34.8834922,
+            -8.0712195
+          ],
+          [
+            -34.8834029,
+            -8.0712793
+          ]
+        ]
+      },
+      "id": "way/704217501"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/791161087",
+        "flood_prone": "yes",
+        "highway": "tertiary",
+        "lanes": "2",
+        "name": "Rua do Peixoto",
+        "oneway": "yes",
+        "postal_code": "50020-180",
+        "source:postal_code": "CNEFE"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -34.8834029,
+            -8.0712793
+          ],
+          [
+            -34.8833129,
+            -8.0713395
+          ]
+        ]
+      },
+      "id": "way/791161087"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/967359605",
+        "highway": "secondary",
+        "lanes": "2",
+        "name": "Avenida Sul",
+        "oneway": "yes",
+        "postal_code": "50090-010",
+        "ref": "PE-007;PE-008",
+        "source:postal_code": "CNEFE",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -34.879788,
+            -8.072269
+          ],
+          [
+            -34.879446,
+            -8.0722491
+          ],
+          [
+            -34.8790196,
+            -8.0722092
+          ],
+          [
+            -34.8786836,
+            -8.0721024
+          ]
+        ]
+      },
+      "id": "way/967359605"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/967389665",
+        "highway": "secondary",
+        "lanes": "2",
+        "name": "Avenida Sul",
+        "oneway": "yes",
+        "postal_code": "51030-171",
+        "ref": "PE-007;PE-008",
+        "source:postal_code": "CNEFE",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -34.8815247,
+            -8.0725396
+          ],
+          [
+            -34.8811874,
+            -8.0724732
+          ]
+        ]
+      },
+      "id": "way/967389665"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1325466416"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -34.883313,
+            -8.071333
+          ],
+          [
+            -34.8840877,
+            -8.0722986
+          ]
+        ]
+      },
+      "id": "way/1325466416"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/1412255777",
+        "dual_carriageway": "yes",
+        "highway": "secondary",
+        "lanes": "4",
+        "name": "Avenida Sul",
+        "oneway": "yes",
+        "postal_code": "50090-010",
+        "ref": "PE-007;PE-008;PE-009",
+        "source:postal_code": "CNEFE",
+        "surface": "asphalt"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -34.8774587,
+            -8.0716236
+          ],
+          [
+            -34.8773346,
+            -8.0715751
+          ],
+          [
+            -34.8761174,
+            -8.0710992
+          ],
+          [
+            -34.8760007,
+            -8.0710076
+          ],
+          [
+            -34.8759295,
+            -8.0709174
+          ],
+          [
+            -34.8758398,
+            -8.0707818
+          ],
+          [
+            -34.8757385,
+            -8.0705966
+          ],
+          [
+            -34.8754062,
+            -8.0698807
+          ]
+        ]
+      },
+      "id": "way/1412255777"
+    }
+  ]
+}
