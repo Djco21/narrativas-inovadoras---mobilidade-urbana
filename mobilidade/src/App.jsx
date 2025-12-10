@@ -412,7 +412,7 @@ function App() {
 
       <MapInteractionContext.Provider value={{ isInteractionBlocked, setInteractionBlocked }}>
         {/* Map Container */}
-        <div className='map-container' ref={mapContainerRef} style={{ position: 'fixed', top: 0, bottom: 0, width: '100%', zIndex: -1 }} />
+        <div className='map-container' ref={mapContainerRef} style={{ position: 'fixed', top: 0, bottom: 0, width: '100%', zIndex: 0 }} />
 
         {/* Wrapper */}
         <div className={!showAlarm ? "content-container" : ""} style={{ position: 'relative', zIndex: 1, width: '100%', pointerEvents: 'none' }}>
