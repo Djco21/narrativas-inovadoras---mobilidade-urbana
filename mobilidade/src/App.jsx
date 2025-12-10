@@ -147,6 +147,10 @@ function App() {
   const [center, setCenter] = useState([-34.8717381, -8.0632174])
   const [zoom, setZoom] = useState(15.12)
 
+  // Dynamic Background State
+  const [overlayOpacity, setOverlayOpacity] = useState(1);
+  const [overlayColor, setOverlayColor] = useState('#fff');
+
   useEffect(() => {
     mapboxgl.accessToken = 'pk.eyJ1IjoiZGpjbzIxIiwiYSI6ImNtaXA3cDBlejBhaW0zZG9sbXZpOHFhYnQifQ.Bo43glKkuVwj310Z-L58oQ'
 
@@ -406,12 +410,32 @@ function App() {
       });
     }, { threshold: 0.5 });
 
+    const bgObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const opacity = entry.target.dataset.opacity;
+          const color = entry.target.dataset.color;
+
+          if (opacity !== undefined) setOverlayOpacity(parseFloat(opacity));
+          if (color) setOverlayColor(color);
+        }
+      });
+    }, { rootMargin: '-50% 0px -50% 0px', threshold: 0 });
+
     // OBSERVE MAP TRIGGERS
     document.querySelectorAll('.map-trigger').forEach(trigger => {
       observer.observe(trigger);
     });
 
-    return () => observer.disconnect();
+    // OBSERVE BG ZONES
+    document.querySelectorAll('.bg-zone').forEach(trigger => {
+      bgObserver.observe(trigger);
+    });
+
+    return () => {
+      observer.disconnect();
+      bgObserver.disconnect();
+    }
   }, [showAlarm]); // Re-run when alarm state changes
 
   // Handlers removed in favor of Context
@@ -420,10 +444,29 @@ function App() {
     <>
       {showAlarm && <AlarmScreen onDismiss={handleAlarmDismiss} />}
 
+      {/* Dynamic Background Overlay */}
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: overlayColor,
+          opacity: overlayOpacity, // Default is 1 (White), so it starts white behind Alarm too.
+          // Better: just use overlayOpacity. Alarm is z-50. This overlay should be z-0 or z-1.
+          // Text content is z-1 (relative). Map is z-0.
+          // We need Overlay > Map but Overlay < Text.
+          transition: 'opacity 1s ease, background-color 1s ease',
+          pointerEvents: 'none',
+          zIndex: 0 // Same as map container? Map is usually z-0. We need this ON TOP of map.
+        }}
+      />
 
       <MapInteractionContext.Provider value={{ isInteractionBlocked, setInteractionBlocked }}>
-        <div className='map-container' ref={mapContainerRef} />
-        <div className="content-container">
+        {/* Map Container - Z-Index 0 implicitly (or -1) */}
+        <div className='map-container' ref={mapContainerRef} style={{ position: 'fixed', top: 0, bottom: 0, width: '100%', zIndex: -1 }} />
+        <div className="content-container" style={{ position: 'relative', zIndex: 1 }}>
           {/* Intro Sequence Wrapper */}
           <div style={{ position: 'relative', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
@@ -439,7 +482,7 @@ function App() {
             {/* Ghost Control Point for Orange Line */}
             <div id="path-control-1" style={{ position: 'absolute', top: '70vh', right: '10vw', width: '10px', height: '10px', pointerEvents: 'none' }} />
 
-            {/*<MapInteractionWrapper>
+            {/* <MapInteractionWrapper>
             <GradientStrip
               topEdge="hard"
               bottomEdge="soft"
@@ -447,113 +490,119 @@ function App() {
               top="0"
               style={{ zIndex: 0, pointerEvents: 'auto' }}
             />
-          </MapInteractionWrapper>*/}
+          </MapInteractionWrapper> */}
 
-            {/* Title - Text Only (VIEW: INTRO) */}
-            <MapTrigger
-              id="intro"
-              style={{ position: 'absolute', top: '20vh' }}
-            />
-            <div
-              className="section"
-              style={{ zIndex: 1, position: 'relative' }}
-            >
-              <h1 style={{ fontSize: '4rem', textShadow: '0 0 20px rgba(255,255,255,0.8)' }}>O Preço da Mobilidade</h1>
+            {/* === ZONE 1: WHITE BACKGROUND === */}
+            <div className="bg-zone" data-opacity="1" style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
-              {/* Diverging Start Points (Invisible) */}
-              <div id="line-start-blue" style={{ position: 'absolute', top: '15vh', left: '35%', height: '10px', width: '10px' }} />
-              <div id="line-start-orange" style={{ position: 'absolute', top: '15vh', left: '65%', height: '10px', width: '10px' }} />
+              {/* Title - Text Only (VIEW: INTRO) */}
+              <MapTrigger
+                id="intro"
+                style={{ position: 'absolute', top: '20vh' }}
+              />
+              <div
+                className="section"
+                style={{ zIndex: 1, position: 'relative' }}
+              >
+                <h1 style={{ fontSize: '4rem', textShadow: '0 0 20px rgba(255,255,255,0.8)' }}>O Preço da Mobilidade</h1>
+
+                {/* Diverging Start Points (Invisible) */}
+                <div id="line-start-blue" style={{ position: 'absolute', top: '15vh', left: '35%', height: '10px', width: '10px' }} />
+                <div id="line-start-orange" style={{ position: 'absolute', top: '15vh', left: '65%', height: '10px', width: '10px' }} />
+              </div>
+
+
+              {/* TRIGGER: INTRO-1 */}
+              <MapTrigger id="intro-1" />
+
+              {/* Card 1: Mais um Dia (Left) */}
+              <InteractionBlocker>
+                <div
+                  className="section card-filled card-left"
+                  id="station-intro-1"
+                  style={{ zIndex: 1, pointerEvents: 'auto' }}
+                >
+                  <h3>Mais um Dia</h3>
+                  <p>São cinco da manhã e o dia ainda nem começou direito, mas o sol, sempre apressado no Recife, já se espalha como se houvesse um para cada habitante da cidade. O corpo sente o peso de ontem, mas a rotina não espera, não pede licença, não pergunta se você está pronto. Apenas segue.</p>
+                </div>
+              </InteractionBlocker>
             </div>
 
 
-            {/* TRIGGER: INTRO-1 */}
-            <MapTrigger id="intro-1" />
+            {/* === ZONE 2: TRANSPARENT BACKGROUND === */}
+            <div className="bg-zone" data-opacity="0" style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
-            {/* Card 1: Mais um Dia (Left) */}
-            <InteractionBlocker>
-              <div
-                className="section card-filled card-left"
-                id="station-intro-1"
-                style={{ zIndex: 1, pointerEvents: 'auto' }}
-              >
-                <h3>Mais um Dia</h3>
-                <p>São cinco da manhã e o dia ainda nem começou direito, mas o sol, sempre apressado no Recife, já se espalha como se houvesse um para cada habitante da cidade. O corpo sente o peso de ontem, mas a rotina não espera, não pede licença, não pergunta se você está pronto. Apenas segue.</p>
-              </div>
-            </InteractionBlocker>
+              {/* TRIGGER: INTRO-2 */}
+              <MapTrigger id="intro-2" />
 
-            {/* START TRANSPARENT SECTION */}
+              {/* Card 2: Mirelly (Right) */}
+              <InteractionBlocker>
+                <div
+                  className="section card-filled card-right"
+                  id="station-intro-2"
+                  style={{ zIndex: 1, pointerEvents: 'auto' }}
+                >
+                  <p>Do mesmo jeito começa, de segunda a sexta, a jornada de Mirelly, jovem aprendiz durante o dia e universitária de Enfermagem à noite, que atravessa a Região Metropolitana para mais um dia. Uma maratona que ninguém escolhe, mas milhões enfrentam.</p>
+                </div>
+              </InteractionBlocker>
 
+              {/* TRIGGER: INTRO-3 */}
+              <MapTrigger id="intro-3" />
 
-            {/* TRIGGER: INTRO-2 */}
-            <MapTrigger id="intro-2" />
-
-            {/* Card 2: Mirelly (Right) */}
-            <InteractionBlocker>
-              <div
-                className="section card-filled card-right"
-                id="station-intro-2"
-                style={{ zIndex: 1, pointerEvents: 'auto' }}
-              >
-                <p>Do mesmo jeito começa, de segunda a sexta, a jornada de Mirelly, jovem aprendiz durante o dia e universitária de Enfermagem à noite, que atravessa a Região Metropolitana para mais um dia. Uma maratona que ninguém escolhe, mas milhões enfrentam.</p>
-              </div>
-            </InteractionBlocker>
-
-            {/* TRIGGER: INTRO-3 */}
-            <MapTrigger id="intro-3" />
-
-            {/* Card 3: Camaragibe (Left) */}
-            <InteractionBlocker>
-              <div
-                className="section card-filled card-left"
-                id="station-intro-3"
-                style={{ zIndex: 1, pointerEvents: 'auto' }}
-              >
-                <p>Moradora de Camaragibe, mais precisamente do bairro de Alberto Maia, “o final de Camaragibe”, como ela mesma costuma dizer, Mirelly desperta às cinco da manhã. Não há luxo de tempo. Ela corre para se arrumar, tomar banho e comer alguma coisa antes de sair. Acordar mais cedo significaria abrir mão de quinze minutinhos daquele sono que, para uma rotina como a dela, vale ouro. Às 5:50, ela tranca a porta e desce a rua rumo à Estação Camaragibe. É o início de mais um dia igual aos outros.</p>
-              </div>
-            </InteractionBlocker>
+              {/* Card 3: Camaragibe (Left) */}
+              <InteractionBlocker>
+                <div
+                  className="section card-filled card-left"
+                  id="station-intro-3"
+                  style={{ zIndex: 1, pointerEvents: 'auto' }}
+                >
+                  <p>Moradora de Camaragibe, mais precisamente do bairro de Alberto Maia, “o final de Camaragibe”, como ela mesma costuma dizer, Mirelly desperta às cinco da manhã. Não há luxo de tempo. Ela corre para se arrumar, tomar banho e comer alguma coisa antes de sair. Acordar mais cedo significaria abrir mão de quinze minutinhos daquele sono que, para uma rotina como a dela, vale ouro. Às 5:50, ela tranca a porta e desce a rua rumo à Estação Camaragibe. É o início de mais um dia igual aos outros.</p>
+                </div>
+              </InteractionBlocker>
 
 
-            {/* TRIGGER: METRO-1 */}
-            <MapTrigger id="metro-1" />
+              {/* TRIGGER: METRO-1 */}
+              <MapTrigger id="metro-1" />
 
-            {/* Card 4: Metro 1 (Right) */}
-            <InteractionBlocker>
-              <div
-                className="section card-filled card-right"
-                id="station-metro-1"
-                style={{ pointerEvents: 'auto' }}
-              >
-                <p>Ela pega o metrô na última estação da Linha Centro às 6h10. Mirelly segue todo o percurso até a Estação Recife, espremida entre mochilas, cotovelos e sonos acumulados. Lá se vão uma hora e dez minutos.</p>
-              </div>
-            </InteractionBlocker>
+              {/* Card 4: Metro 1 (Right) */}
+              <InteractionBlocker>
+                <div
+                  className="section card-filled card-right"
+                  id="station-metro-1"
+                  style={{ pointerEvents: 'auto' }}
+                >
+                  <p>Ela pega o metrô na última estação da Linha Centro às 6h10. Mirelly segue todo o percurso até a Estação Recife, espremida entre mochilas, cotovelos e sonos acumulados. Lá se vão uma hora e dez minutos.</p>
+                </div>
+              </InteractionBlocker>
 
-            {/* TRIGGER: METRO-2 */}
-            <MapTrigger id="metro-2" />
+              {/* TRIGGER: METRO-2 */}
+              <MapTrigger id="metro-2" />
 
-            {/* Card 5: Metro 2 (Left) */}
-            <InteractionBlocker>
-              <div
-                className="section card-filled card-left"
-                id="station-metro-2"
-                style={{ pointerEvents: 'auto' }}
-              >
-                <p>De vez em quando, ela tenta olhar pela janela, procurando um fiapo de paisagem por cima das dezenas, às vezes centenas de cabeças que lotam o metrô. Mas a vista quase nunca aparece. O caminho, no entanto, ela já sabe de cor.</p>
-              </div>
-            </InteractionBlocker>
+              {/* Card 5: Metro 2 (Left) */}
+              <InteractionBlocker>
+                <div
+                  className="section card-filled card-left"
+                  id="station-metro-2"
+                  style={{ pointerEvents: 'auto' }}
+                >
+                  <p>De vez em quando, ela tenta olhar pela janela, procurando um fiapo de paisagem por cima das dezenas, às vezes centenas de cabeças que lotam o metrô. Mas a vista quase nunca aparece. O caminho, no entanto, ela já sabe de cor.</p>
+                </div>
+              </InteractionBlocker>
 
-            {/* TRIGGER: METRO-3 */}
-            <MapTrigger id="metro-3" />
+              {/* TRIGGER: METRO-3 */}
+              <MapTrigger id="metro-3" />
 
-            {/* Card 6: Metro 3 (Right) */}
-            <InteractionBlocker>
-              <div
-                className="section card-filled card-right"
-                id="station-metro-3"
-                style={{ pointerEvents: 'auto' }}
-              >
-                <p>Segundo o Relatório Global de Transporte Público da Moovit (2024), o recifense passa, em média, 64 minutos dentro do ônibus ou metrô a cada trecho. Tempo que Mirelly já tinha deixado para trás só no primeiro sprint da sua maratona diária pela cidade.</p>
-              </div>
-            </InteractionBlocker>
+              {/* Card 6: Metro 3 (Right) */}
+              <InteractionBlocker>
+                <div
+                  className="section card-filled card-right"
+                  id="station-metro-3"
+                  style={{ pointerEvents: 'auto' }}
+                >
+                  <p>Segundo o Relatório Global de Transporte Público da Moovit (2024), o recifense passa, em média, 64 minutos dentro do ônibus ou metrô a cada trecho. Tempo que Mirelly já tinha deixado para trás só no primeiro sprint da sua maratona diária pela cidade.</p>
+                </div>
+              </InteractionBlocker>
+            </div>
           </div>
         </div>
       </MapInteractionContext.Provider >
