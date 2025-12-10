@@ -47,7 +47,8 @@ export default function AlarmScreen({ onDismiss }) {
 
   return (
     <motion.div
-      className="fixed inset-0 bg-black flex items-center justify-center z-50"
+      className="fixed inset-0 flex items-center justify-center z-50"
+      style={{ backgroundColor: 'rgba(0, 0, 0, 0.4)' }}
       initial={{ opacity: 1 }}
       animate={{ opacity: closing ? 0 : 1 }}
       transition={{ duration: 0.9 }}
