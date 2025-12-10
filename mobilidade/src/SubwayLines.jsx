@@ -300,7 +300,7 @@ const SubwayLines = ({ lines = [] }) => {
                     fill="none"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    opacity="0.8"
+                    opacity="1"
                 />
             ))}
             {stations.map((s, i) => (
