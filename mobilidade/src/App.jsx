@@ -52,10 +52,10 @@ const chapters = {
     bearing: 0
   },
   'camaragibe-recife': {
-    center: [-34.95, -8.04],
+    center: [-34.95, -8.08],
     zoom: 13,
     pitch: 60,
-    bearing: -290
+    bearing: -300
   }
 };
 
