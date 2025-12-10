@@ -11,25 +11,25 @@ export const narrativeData = {
             id: "station-camaragibe-recife",
             align: "right",
             text: "Às 5h50, tranca a porta e desce a rua rumo à Estação Camaragibe, onde a maratona diária tem início. Em seguida, 1h10min depois de navegar entre mochilas, passageiros também sonolentos e pouco espaço para respirar, desembarca na Estação Recife.",
-            triggerAfter: "intro-3"
+            triggerAfter: "est-recife"
         },
         {
             id: "station-moovit-stats",
             align: "left",
             text: "O Relatório Global de Transporte Público da Moovit de 2024 diz que o recifense passa em média 64 minutos por trecho no ônibus ou metrô, mas Mirelly deixa essa média para trás antes mesmo das sete. O professor de mobilidade urbana Maurício Oliveira de Andrade, explica que isso não é por acaso, já que a cidade do Recife cresceu sem planejar o próprio crescimento, e que as vias não acompanharam o ritmo da metrópole que virou.",
-            triggerAfter: "metro-1"
+            triggerAfter: "novotel"
         },
         {
             id: "station-mirelly-delays",
             align: "right",
             text: "“Sessenta e quatro minutos não significam que todos gastam isso”, ele lembra. “Significa que muitos gastam bem mais”. Mirelly, por exemplo, sabe disso no corpo. Cada minuto é um alongamento involuntário entre atrasos, calor e um sistema que não espera, e raramente funciona.",
-            triggerAfter: "metro-2"
+            triggerAfter: "recife"
         },
         {
             id: "station-cais-santa-rita",
             align: "left",
             text: "Ainda falta o ônibus: mais vinte minutos até o Cais de Santa Rita, geralmente em pé, entre janelas emperradas e ar-condicionado quebrado, enquanto o relógio insiste em acelerar. Depois, cinco minutos de caminhada. Só às 7h45 ela respira. Ironicamente, no único momento da manhã em que “descansa” é quando o trabalho começa.",
-            triggerAfter: "metro-3"
+            triggerAfter: "camaragibe-recife"
         },
         {
             id: "station-metro-collapse",
