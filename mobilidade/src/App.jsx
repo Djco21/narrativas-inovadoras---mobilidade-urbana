@@ -284,6 +284,7 @@ function App() {
   // Interaction Blocking Logic & Flashlight Tracking
   const [isInteractionBlocked, setInteractionBlocked] = useState(false);
   const isInteractionBlockedRef = useRef(false);
+  const isDraggingRef = useRef(false);
   const hoveredFeatures = useRef(new Set());
 
   useEffect(() => {
@@ -293,12 +294,42 @@ function App() {
   // Handle Drag Pan
   useEffect(() => {
     if (!mapRef.current) return;
+
+    // If a drag is already active, do not block interactions.
+    // This allows the user to drag *over* blocked elements if they started outside.
+    if (isDraggingRef.current) return;
+
     if (isInteractionBlocked) {
       mapRef.current.dragPan.disable();
     } else {
       mapRef.current.dragPan.enable();
     }
   }, [isInteractionBlocked]);
+
+  // Track dragging state to prevent blocking mid-drag
+  useEffect(() => {
+    if (!mapRef.current) return;
+    const map = mapRef.current;
+
+    const onDragStart = () => { isDraggingRef.current = true; };
+    const onDragEnd = () => {
+      isDraggingRef.current = false;
+
+      // Re-evaluate blocking state on drag end
+      // If we end a drag WHILE over a blocked element, we must now block.
+      if (isInteractionBlockedRef.current) {
+        map.dragPan.disable();
+      }
+    };
+
+    map.on('dragstart', onDragStart);
+    map.on('dragend', onDragEnd);
+
+    return () => {
+      map.off('dragstart', onDragStart);
+      map.off('dragend', onDragEnd);
+    };
+  }, []);
 
   // Handle Flashlight Mouse Move
   useEffect(() => {
@@ -384,7 +415,7 @@ function App() {
         <div className='map-container' ref={mapContainerRef} style={{ position: 'fixed', top: 0, bottom: 0, width: '100%', zIndex: -1 }} />
 
         {/* Wrapper */}
-        <div className={!showAlarm ? "content-container" : ""} style={{ position: 'relative', zIndex: 1, width: '100%' }}>
+        <div className={!showAlarm ? "content-container" : ""} style={{ position: 'relative', zIndex: 1, width: '100%', pointerEvents: 'none' }}>
           <div style={{ position: 'relative', width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <PrologueSection transparent={!showAlarm} />
             {/* Pass handleChapterChange to Content */}
