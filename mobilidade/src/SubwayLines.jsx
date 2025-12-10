@@ -246,9 +246,18 @@ const SubwayLines = ({ lines = [] }) => {
             newPaths.push({ d, color: line.color, width: line.width || 6 });
         });
 
-        setPaths(newPaths);
-        setStations(newStations);
+        // Deep check if update is needed
+        setPaths(prev => {
+            if (JSON.stringify(prev) === JSON.stringify(newPaths)) return prev;
+            return newPaths;
+        });
+        setStations(prev => {
+            if (JSON.stringify(prev) === JSON.stringify(newStations)) return prev;
+            return newStations;
+        });
     };
+
+    const linesKey = JSON.stringify(lines);
 
     useEffect(() => {
         calculatePaths();
@@ -261,12 +270,12 @@ const SubwayLines = ({ lines = [] }) => {
             window.removeEventListener('resize', handleResize);
             ro.disconnect();
         };
-    }, [lines]);
+    }, [linesKey]);
 
     useEffect(() => {
         const timer = setTimeout(calculatePaths, 100);
         return () => clearTimeout(timer);
-    }, [lines]);
+    }, [linesKey]);
 
     return (
         <svg
@@ -296,7 +305,7 @@ const SubwayLines = ({ lines = [] }) => {
             ))}
             {stations.map((s, i) => (
                 <g key={i} transform={`translate(${s.x}, ${s.y})`}>
-                    <circle r="6" fill="#fff" stroke={s.color} strokeWidth="3" />
+                    <circle r="9" fill="#fff" stroke="#000000" strokeWidth="5" />
                 </g>
             ))}
         </svg>
