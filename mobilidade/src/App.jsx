@@ -16,46 +16,46 @@ import { preloadChapter } from './preloadUtils';
 import AlarmScreen from './AlarmScreen';
 
 
-preloadChapter('intro');
+preloadChapter('est-camaragibe');
 
 
 
 const chapters = {
-  'intro': {
+  'est-camaragibe': {
     center: [-34.9951367, -8.0248778],
     zoom: 16,
     pitch: 0,
     bearing: 0
   },
-  'intro2': {
+  'est-camaragibe-2': {
     center: [-34.9951367, -8.0248778],
     zoom: 12,
     pitch: 0,
     bearing: 0
   },
-  'intro3': {
+  'est-recife': {
     center: [-34.8858867, -8.0691144],
     zoom: 16,
     pitch: 0,
     bearing: 0
   },
-  'intro4': {
+  'novotel': {
     center: [-34.8753267, -8.0695504],
     zoom: 16,
     pitch: 0,
     bearing: 0
   },
-  'intro5': {
+  'recife': {
     center: [-34.8959673, -8.0760724],
     zoom: 12,
     pitch: 0,
     bearing: 0
   },
-  'intro6': {
-    center: [-34.8959673, -8.0760724],
-    zoom: 10,
-    pitch: 0,
-    bearing: 0
+  'camaragibe-recife': {
+    center: [-34.95, -8.04],
+    zoom: 13,
+    pitch: 60,
+    bearing: -290
   }
 };
 
@@ -83,7 +83,7 @@ function App() {
     setShowAlarm(false);
     if (mapRef.current) {
       mapRef.current.flyTo({
-        ...chapters['intro'],
+        ...chapters['est-camaragibe'],
         essential: true,
         duration: 3000 // Slower fly for effect
       });
@@ -138,7 +138,7 @@ function App() {
     mapboxgl.accessToken = 'pk.eyJ1IjoiZGpjbzIxIiwiYSI6ImNtaXA3cDBlejBhaW0zZG9sbXZpOHFhYnQifQ.Bo43glKkuVwj310Z-L58oQ'
 
     // Reverse Tour: Start at the END (metro-3)
-    const initialView = showAlarm ? chapters['intro6'] : chapters['intro'];
+    const initialView = showAlarm ? chapters['camaragibe-recife'] : chapters['est-camaragibe'];
 
     mapRef.current = new mapboxgl.Map({
       container: mapContainerRef.current,
@@ -508,7 +508,7 @@ function App() {
 
               {/* Title - Text Only (VIEW: INTRO) */}
               <motion.div
-                onViewportEnter={() => handleChapterChange('intro')}
+                onViewportEnter={() => handleChapterChange('est-camaragibe')}
                 viewport={{ amount: 0.5 }}
                 style={{ position: 'absolute', top: '20vh', marginBottom: '10vh', height: '1px', width: '100%', pointerEvents: 'none' }}
               />
@@ -536,7 +536,7 @@ function App() {
 
               {/* TRIGGER: INTRO-1 */}
               <motion.div
-                onViewportEnter={() => handleChapterChange('intro1')}
+                onViewportEnter={() => handleChapterChange('est-camaragibe-2')}
                 viewport={{ amount: 0.5 }}
                 style={{ marginBottom: '10vh', height: '1px', width: '100%', pointerEvents: 'none' }}
               />
@@ -554,7 +554,7 @@ function App() {
 
               {/* TRIGGER: INTRO2 */}
               <motion.div
-                onViewportEnter={() => handleChapterChange('intro2')}
+                onViewportEnter={() => handleChapterChange('est-recife')}
                 viewport={{ amount: 0.5 }}
                 style={{ marginBottom: '10vh', height: '1px', width: '100%', pointerEvents: 'none' }}
               />
@@ -573,7 +573,7 @@ function App() {
 
               {/* TRIGGER: METRO-1 */}
               <motion.div
-                onViewportEnter={() => handleChapterChange('intro3')}
+                onViewportEnter={() => handleChapterChange('novotel')}
                 viewport={{ amount: 0.5 }}
                 style={{ marginBottom: '10vh', height: '1px', width: '100%', pointerEvents: 'none' }}
               />
@@ -591,7 +591,7 @@ function App() {
 
               {/* TRIGGER: METRO-2 */}
               <motion.div
-                onViewportEnter={() => handleChapterChange('intro4')}
+                onViewportEnter={() => handleChapterChange('recife')}
                 viewport={{ amount: 0.5 }}
                 style={{ marginBottom: '10vh', height: '1px', width: '100%', pointerEvents: 'none' }}
               />
@@ -609,7 +609,7 @@ function App() {
 
               {/* TRIGGER: METRO-3 */}
               <motion.div
-                onViewportEnter={() => handleChapterChange('intro5')}
+                onViewportEnter={() => handleChapterChange('camaragibe-recife')}
                 viewport={{ amount: 0.5 }}
                 style={{ marginBottom: '10vh', height: '1px', width: '100%', pointerEvents: 'none' }}
               />
