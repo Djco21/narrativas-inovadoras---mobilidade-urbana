@@ -538,60 +538,65 @@ function App() {
               {/* TRIGGER: INTRO-1 */}
               <MapTrigger id="intro-1" />
 
-          {/* Card 1: Mais um Dia (Left) */}
-          <MapInteractionWrapper onBlock={handleMouseEnter} onUnblock={handleMouseLeave}>
-            <div
-              className="section card-filled card-left"
-              id="station-intro-1"
-              style={{ zIndex: 1, pointerEvents: 'auto' }}
-            >
-              <h3>Mais um Dia</h3>
-              <p>São cinco da manhã e o dia ainda nem começou direito, mas o sol, sempre apressado no Recife, já se espalha como se houvesse um para cada habitante da cidade. O corpo sente o peso de ontem, mas a rotina não espera, não pede licença, não pergunta se você está pronto. Apenas segue.</p>
+              {/* Card 1: Mais um Dia (Left) */}
+              <InteractionBlocker>
+                <div
+                  className="section card-filled card-left"
+                  id="station-intro-1"
+                  style={{ zIndex: 1, pointerEvents: 'auto' }}
+                >
+                  <h3>Mais um Dia</h3>
+                  <p>São cinco da manhã e o dia ainda nem começou direito, mas o sol, sempre apressado no Recife, já se espalha como se houvesse um para cada habitante da cidade. O corpo sente o peso de ontem, mas a rotina não espera, não pede licença, não pergunta se você está pronto. Apenas segue.</p>
+                </div>
+              </InteractionBlocker>
             </div>
-          </MapInteractionWrapper>
+
+
+            {/* === ZONE 2: TRANSPARENT BACKGROUND === */}
+            <div className="bg-zone" data-opacity="0" style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
               {/* TRIGGER: INTRO-2 */}
               <MapTrigger id="intro-2" />
 
-          {/* Card 2: Mirelly (Right) */}
-          <MapInteractionWrapper onBlock={handleMouseEnter} onUnblock={handleMouseLeave}>
-            <div
-              className="section card-filled card-right"
-              id="station-intro-2"
-              style={{ zIndex: 1, pointerEvents: 'auto' }}
-            >
-              <p>Do mesmo jeito começa, de segunda a sexta, a jornada de Mirelly, jovem aprendiz durante o dia e universitária de Enfermagem à noite, que atravessa a Região Metropolitana para mais um dia. Uma maratona que ninguém escolhe, mas milhões enfrentam.</p>
-            </div>
-          </MapInteractionWrapper>
+              {/* Card 2: Mirelly (Right) */}
+              <InteractionBlocker>
+                <div
+                  className="section card-filled card-right"
+                  id="station-intro-2"
+                  style={{ zIndex: 1, pointerEvents: 'auto' }}
+                >
+                  <p>Do mesmo jeito começa, de segunda a sexta, a jornada de Mirelly, jovem aprendiz durante o dia e universitária de Enfermagem à noite, que atravessa a Região Metropolitana para mais um dia. Uma maratona que ninguém escolhe, mas milhões enfrentam.</p>
+                </div>
+              </InteractionBlocker>
 
               {/* TRIGGER: INTRO-3 */}
               <MapTrigger id="intro-3" />
 
-          {/* Card 3: Camaragibe (Left) */}
-          <MapInteractionWrapper onBlock={handleMouseEnter} onUnblock={handleMouseLeave}>
-            <div
-              className="section card-filled card-left"
-              id="station-intro-3"
-              style={{ zIndex: 1, pointerEvents: 'auto' }}
-            >
-              <p>Moradora de Camaragibe, mais precisamente do bairro de Alberto Maia, “o final de Camaragibe”, como ela mesma costuma dizer, Mirelly desperta às cinco da manhã. Não há luxo de tempo. Ela corre para se arrumar, tomar banho e comer alguma coisa antes de sair. Acordar mais cedo significaria abrir mão de quinze minutinhos daquele sono que, para uma rotina como a dela, vale ouro. Às 5:50, ela tranca a porta e desce a rua rumo à Estação Camaragibe. É o início de mais um dia igual aos outros.</p>
-            </div>
-          </MapInteractionWrapper>
-        </div>
+              {/* Card 3: Camaragibe (Left) */}
+              <InteractionBlocker>
+                <div
+                  className="section card-filled card-left"
+                  id="station-intro-3"
+                  style={{ zIndex: 1, pointerEvents: 'auto' }}
+                >
+                  <p>Moradora de Camaragibe, mais precisamente do bairro de Alberto Maia, “o final de Camaragibe”, como ela mesma costuma dizer, Mirelly desperta às cinco da manhã. Não há luxo de tempo. Ela corre para se arrumar, tomar banho e comer alguma coisa antes de sair. Acordar mais cedo significaria abrir mão de quinze minutinhos daquele sono que, para uma rotina como a dela, vale ouro. Às 5:50, ela tranca a porta e desce a rua rumo à Estação Camaragibe. É o início de mais um dia igual aos outros.</p>
+                </div>
+              </InteractionBlocker>
+
 
               {/* TRIGGER: METRO-1 */}
               <MapTrigger id="metro-1" />
 
-        {/* Card 4: Metro 1 (Right) */}
-        <MapInteractionWrapper onBlock={handleMouseEnter} onUnblock={handleMouseLeave}>
-          <div
-            className="section card-filled card-right"
-            id="station-metro-1"
-            style={{ pointerEvents: 'auto' }}
-          >
-            <p>Ela pega o metrô na última estação da Linha Centro às 6h10. Mirelly segue todo o percurso até a Estação Recife, espremida entre mochilas, cotovelos e sonos acumulados. Lá se vão uma hora e dez minutos.</p>
-          </div>
-        </MapInteractionWrapper>
+              {/* Card 4: Metro 1 (Right) */}
+              <InteractionBlocker>
+                <div
+                  className="section card-filled card-right"
+                  id="station-metro-1"
+                  style={{ pointerEvents: 'auto' }}
+                >
+                  <p>Ela pega o metrô na última estação da Linha Centro às 6h10. Mirelly segue todo o percurso até a Estação Recife, espremida entre mochilas, cotovelos e sonos acumulados. Lá se vão uma hora e dez minutos.</p>
+                </div>
+              </InteractionBlocker>
 
               {/* TRIGGER: METRO-2 */}
               <MapTrigger id="metro-2" />
