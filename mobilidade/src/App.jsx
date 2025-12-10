@@ -3,6 +3,8 @@ import mapboxgl from 'mapbox-gl'
 
 import 'mapbox-gl/dist/mapbox-gl.css';
 
+import { motion } from 'framer-motion';
+
 import './App.css'
 import GradientStrip from './GradientStrip';
 import InteractionBlocker from './InteractionBlocker';
@@ -21,62 +23,41 @@ preloadChapter('intro');
 const chapters = {
   'intro': {
     center: [-34.9951367, -8.0248778],
-    zoom: 30.12,
+    zoom: 16,
     pitch: 0,
     bearing: 0
   },
-  'intro-1': {
+  'intro2': {
     center: [-34.9951367, -8.0248778],
-    zoom: 15.5,
-    pitch: 10,
+    zoom: 12,
+    pitch: 0,
     bearing: 0
   },
-  'intro-2': {
-    center: [-34.8717381, -8.0632174],
+  'intro3': {
+    center: [-34.8858867, -8.0691144],
     zoom: 16,
-    pitch: 20,
-    bearing: 10
-  },
-  'intro-3': {
-    center: [-34.8717381, -8.0632174],
-    zoom: 16.5,
-    pitch: 30,
-    bearing: -10
-  },
-  'metro-1': {
-    center: [-34.8847, -8.0683], // Estação Recife
-    zoom: 14,
-    pitch: 45,
-    bearing: 15
-  },
-  'metro-2': {
-    center: [-34.8847, -8.0683],
-    zoom: 13, // Zoom out slightly
-    pitch: 30,
+    pitch: 0,
     bearing: 0
   },
-  'metro-3': {
-    center: [-34.8847, -8.0683],
-    zoom: 12, // Zoom out more for context
+  'intro4': {
+    center: [-34.8753267, -8.0695504],
+    zoom: 16,
+    pitch: 0,
+    bearing: 0
+  },
+  'intro5': {
+    center: [-34.8959673, -8.0760724],
+    zoom: 12,
+    pitch: 0,
+    bearing: 0
+  },
+  'intro6': {
+    center: [-34.8959673, -8.0760724],
+    zoom: 10,
     pitch: 0,
     bearing: 0
   }
 };
-
-// Simple functional component for Map Triggers
-const MapTrigger = ({ id, style }) => (
-  <div
-    className="map-trigger"
-    id={id}
-    style={{
-      marginBottom: '10vh',
-      height: '1px',
-      width: '100%',
-      pointerEvents: 'none',
-      ...style
-    }}
-  />
-);
 
 function App() {
 
@@ -157,7 +138,7 @@ function App() {
     mapboxgl.accessToken = 'pk.eyJ1IjoiZGpjbzIxIiwiYSI6ImNtaXA3cDBlejBhaW0zZG9sbXZpOHFhYnQifQ.Bo43glKkuVwj310Z-L58oQ'
 
     // Reverse Tour: Start at the END (metro-3)
-    const initialView = showAlarm ? chapters['metro-3'] : chapters['intro'];
+    const initialView = showAlarm ? chapters['intro6'] : chapters['intro'];
 
     mapRef.current = new mapboxgl.Map({
       container: mapContainerRef.current,
@@ -428,60 +409,30 @@ function App() {
 
   // Handlers removed in favor of Context
 
-  useEffect(() => {
+  const handleChapterChange = (chapterName) => {
     if (showAlarm) return;
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const chapterName = entry.target.getAttribute('id');
-          const chapter = chapters[chapterName];
-          if (chapter && mapRef.current) {
-            mapRef.current.flyTo({
-              ...chapter,
-              essential: true,
-            });
-
-            // Preload next chapter
-            const chapterKeys = Object.keys(chapters);
-            const currentIndex = chapterKeys.indexOf(chapterName);
-            const nextChapterName = chapterKeys[currentIndex + 1];
-            if (nextChapterName) {
-              const nextChapter = chapters[nextChapterName];
-              preloadChapter(mapRef.current, nextChapter);
-            }
-          }
-        }
+    const chapter = chapters[chapterName];
+    if (chapter && mapRef.current) {
+      mapRef.current.flyTo({
+        ...chapter,
+        essential: true,
       });
-    }, { threshold: 0.5 });
 
-    const bgObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const opacity = entry.target.dataset.opacity;
-          const color = entry.target.dataset.color;
-
-          if (opacity !== undefined) setOverlayOpacity(parseFloat(opacity));
-          if (color) setOverlayColor(color);
-        }
-      });
-    }, { rootMargin: '-50% 0px -50% 0px', threshold: 0 });
-
-    // OBSERVE MAP TRIGGERS
-    document.querySelectorAll('.map-trigger').forEach(trigger => {
-      observer.observe(trigger);
-    });
-
-    // OBSERVE BG ZONES
-    document.querySelectorAll('.bg-zone').forEach(trigger => {
-      bgObserver.observe(trigger);
-    });
-
-    return () => {
-      observer.disconnect();
-      bgObserver.disconnect();
+      // Preload next chapter
+      const chapterKeys = Object.keys(chapters);
+      const currentIndex = chapterKeys.indexOf(chapterName);
+      const nextChapterName = chapterKeys[currentIndex + 1];
+      if (nextChapterName) {
+        const nextChapter = chapters[nextChapterName];
+        preloadChapter(mapRef.current, nextChapter);
+      }
     }
-  }, [showAlarm]); // Re-run when alarm state changes
+  };
+
+  const handleBackgroundChange = (opacity, color) => {
+    if (opacity !== undefined) setOverlayOpacity(parseFloat(opacity));
+    if (color) setOverlayColor(color);
+  };
 
   // Handlers removed in favor of Context
 
@@ -538,7 +489,11 @@ function App() {
           </MapInteractionWrapper> */}
 
             {/* === ZONE 1: WHITE BACKGROUND === */}
-            <div className="bg-zone" data-opacity="1" style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <motion.div
+              onViewportEnter={() => handleBackgroundChange(1, null)}
+              viewport={{ amount: 0.1 }}
+              style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+            >
 
               <div
                 className="section"
@@ -552,9 +507,10 @@ function App() {
               </div>
 
               {/* Title - Text Only (VIEW: INTRO) */}
-              <MapTrigger
-                id="intro"
-                style={{ position: 'absolute', top: '20vh' }}
+              <motion.div
+                onViewportEnter={() => handleChapterChange('intro')}
+                viewport={{ amount: 0.5 }}
+                style={{ position: 'absolute', top: '20vh', marginBottom: '10vh', height: '1px', width: '100%', pointerEvents: 'none' }}
               />
 
               {/* Card 1: Mais um Dia (Left) */}
@@ -568,14 +524,22 @@ function App() {
                   <p>São cinco da manhã e o dia ainda nem começou direito, mas o sol, sempre apressado no Recife, já se espalha como se houvesse um para cada habitante da cidade. O corpo sente o peso de ontem, mas a rotina não espera, não pede licença, não pergunta se você está pronto. Apenas segue.</p>
                 </div>
               </InteractionBlocker>
-            </div>
+            </motion.div>
 
 
             {/* === ZONE 2: TRANSPARENT BACKGROUND === */}
-            <div className="bg-zone" data-opacity="0" style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <motion.div
+              onViewportEnter={() => handleBackgroundChange(0, null)}
+              viewport={{ amount: 0.1 }}
+              style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+            >
 
               {/* TRIGGER: INTRO-1 */}
-              <MapTrigger id="intro-1" />
+              <motion.div
+                onViewportEnter={() => handleChapterChange('intro1')}
+                viewport={{ amount: 0.5 }}
+                style={{ marginBottom: '10vh', height: '1px', width: '100%', pointerEvents: 'none' }}
+              />
 
               {/* Card 2: Mirelly (Right) */}
               <InteractionBlocker>
@@ -588,8 +552,12 @@ function App() {
                 </div>
               </InteractionBlocker>
 
-              {/* TRIGGER: INTRO-3 */}
-              <MapTrigger id="intro-3" />
+              {/* TRIGGER: INTRO2 */}
+              <motion.div
+                onViewportEnter={() => handleChapterChange('intro2')}
+                viewport={{ amount: 0.5 }}
+                style={{ marginBottom: '10vh', height: '1px', width: '100%', pointerEvents: 'none' }}
+              />
 
               {/* Card 3: Camaragibe (Left) */}
               <InteractionBlocker>
@@ -604,7 +572,11 @@ function App() {
 
 
               {/* TRIGGER: METRO-1 */}
-              <MapTrigger id="metro-1" />
+              <motion.div
+                onViewportEnter={() => handleChapterChange('intro3')}
+                viewport={{ amount: 0.5 }}
+                style={{ marginBottom: '10vh', height: '1px', width: '100%', pointerEvents: 'none' }}
+              />
 
               {/* Card 4: Metro 1 (Right) */}
               <InteractionBlocker>
@@ -618,7 +590,11 @@ function App() {
               </InteractionBlocker>
 
               {/* TRIGGER: METRO-2 */}
-              <MapTrigger id="metro-2" />
+              <motion.div
+                onViewportEnter={() => handleChapterChange('intro4')}
+                viewport={{ amount: 0.5 }}
+                style={{ marginBottom: '10vh', height: '1px', width: '100%', pointerEvents: 'none' }}
+              />
 
               {/* Card 5: Metro 2 (Left) */}
               <InteractionBlocker>
@@ -632,7 +608,11 @@ function App() {
               </InteractionBlocker>
 
               {/* TRIGGER: METRO-3 */}
-              <MapTrigger id="metro-3" />
+              <motion.div
+                onViewportEnter={() => handleChapterChange('intro5')}
+                viewport={{ amount: 0.5 }}
+                style={{ marginBottom: '10vh', height: '1px', width: '100%', pointerEvents: 'none' }}
+              />
 
               {/* Card 6: Metro 3 (Right) */}
               <InteractionBlocker>
@@ -644,7 +624,7 @@ function App() {
                   <p>Segundo o Relatório Global de Transporte Público da Moovit (2024), o recifense passa, em média, 64 minutos dentro do ônibus ou metrô a cada trecho. Tempo que Mirelly já tinha deixado para trás só no primeiro sprint da sua maratona diária pela cidade.</p>
                 </div>
               </InteractionBlocker>
-            </div>
+            </motion.div>
           </div>
         </div>
       </MapInteractionContext.Provider >
