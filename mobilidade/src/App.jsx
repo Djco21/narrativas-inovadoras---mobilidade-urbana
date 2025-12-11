@@ -11,6 +11,7 @@ import { MapInteractionContext } from './MapInteractionContext';
 import routeData from './assets/route.json';
 import extraRouteData from './assets/osm_elements_part5.json';
 import novohotelDerbyData from './assets/osm_elements_part6.json';
+import part7Data from './assets/osm_elements_part7.json';
 import { preloadChapter } from './preloadUtils';
 import AlarmScreen from './AlarmScreen';
 import Content from './Content';
@@ -163,6 +164,10 @@ function App() {
     return turf.buffer(novohotelDerbyData, 0.005, { units: 'kilometers' });
   }, []);
 
+  const part7Buffered = useMemo(() => {
+    return turf.buffer(part7Data, 0.005, { units: 'kilometers' });
+  }, []);
+
   useEffect(() => {
     mapboxgl.accessToken = 'pk.eyJ1IjoiZGpjbzIxIiwiYSI6ImNtaXA3cDBlejBhaW0zZG9sbXZpOHFhYnQifQ.Bo43glKkuVwj310Z-L58oQ'
 
@@ -213,6 +218,11 @@ function App() {
         data: novohotelDerbyData
       });
 
+      mapRef.current.addSource('part7-min', {
+        type: 'geojson',
+        data: part7Data
+      });
+
       mapRef.current.addLayer({
         id: 'extra-route-min',
         type: 'line',
@@ -228,6 +238,17 @@ function App() {
         id: 'novohotel-min',
         type: 'line',
         source: 'novohotel-min',
+        paint: {
+          'line-color': theme.colors.transport.busLineBack,
+          'line-width': theme.map.layers.lineWidth,
+          'line-opacity': 1
+        }
+      }, labelLayerId);
+
+      mapRef.current.addLayer({
+        id: 'part7-min',
+        type: 'line',
+        source: 'part7-min',
         paint: {
           'line-color': theme.colors.transport.busLineBack,
           'line-width': theme.map.layers.lineWidth,
@@ -298,13 +319,18 @@ function App() {
         data: novohotelBuffered
       });
 
+      mapRef.current.addSource('part7', {
+        type: 'geojson',
+        data: part7Buffered
+      });
+
       mapRef.current.addLayer({
         id: 'extra-route',
         type: 'fill-extrusion',
         source: 'extra-route',
         minzoom: 15,
         paint: {
-          'fill-extrusion-color': theme.colors.transport.busLineBack, // Bus/Blue
+          'fill-extrusion-color': theme.colors.transport.busLine, // Bus/Blue
           'fill-extrusion-height': [
             'interpolate',
             ['linear'],
@@ -323,6 +349,27 @@ function App() {
         id: 'novohotel',
         type: 'fill-extrusion',
         source: 'novohotel',
+        minzoom: 15,
+        paint: {
+          'fill-extrusion-color': theme.colors.transport.busLineBack,
+          'fill-extrusion-height': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            15,
+            0,
+            15.05,
+            theme.map.layers.extrusionHeight
+          ],
+          'fill-extrusion-base': 0,
+          'fill-extrusion-opacity': 1
+        }
+      }, labelLayerId);
+
+      mapRef.current.addLayer({
+        id: 'part7',
+        type: 'fill-extrusion',
+        source: 'part7',
         minzoom: 15,
         paint: {
           'fill-extrusion-color': theme.colors.transport.busLineBack,
