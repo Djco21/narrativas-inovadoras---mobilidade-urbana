@@ -1,5 +1,6 @@
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useState, useMemo, useCallback } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion';
+import * as turf from '@turf/turf';
 import mapboxgl from 'mapbox-gl'
 
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -15,46 +16,80 @@ import Content from './Content';
 
 import PrologueSection from './PrologueSection';
 import DevCameraHUD from './DevCameraHUD';
+import { theme } from './theme';
 
 
-preloadChapter('est-camaragibe');
+// preloadChapter('est-camaragibe');
 
 const chapters = {
-  'est-camaragibe': {
-    center: [-34.9951367, -8.0248778],
-    zoom: 16,
-    pitch: 0,
-    bearing: 0
-  },
-  'est-camaragibe-2': {
-    center: [-34.9951367, -8.0248778],
-    zoom: 12,
-    pitch: 0,
-    bearing: 0
-  },
-  'est-recife': {
-    center: [-34.8858867, -8.0691144],
-    zoom: 16,
-    pitch: 0,
-    bearing: 0
-  },
-  'novotel': {
-    center: [-34.8753267, -8.0695504],
-    zoom: 16,
-    pitch: 0,
-    bearing: 0
-  },
-  'recife': {
+  'start': {
     center: [-34.8959673, -8.0760724],
-    zoom: 12,
-    pitch: 0,
+    zoom: 11,
+    pitch: 45,
     bearing: 0
+  },
+  'est-camaragibe': {
+    "center": [
+      -34.992555,
+      -8.024181
+    ],
+    "zoom": 16,
+    "pitch": 71.6,
+    "bearing": 104.76
   },
   'camaragibe-recife': {
-    center: [-34.95, -8.08],
-    zoom: 13,
-    pitch: 60,
-    bearing: -300
+    "center": [
+      -34.938408,
+      -8.077322
+    ],
+    "zoom": 12,
+    "pitch": 0,
+    "bearing": 45.82
+  },
+  'est-recife': {
+    "center": [
+      -34.879366,
+      -8.067496
+    ],
+    "zoom": 15,
+    "pitch": 58.95,
+    "bearing": 66.24
+  },
+  'novotel': {
+    "center": [
+      -34.875888,
+      -8.070171
+    ],
+    "zoom": 16,
+    "pitch": 66.79,
+    "bearing": 12.79
+  },
+  'derby': {
+    "center": [
+      -34.896803,
+      -8.061814
+    ],
+    "zoom": 14,
+    "pitch": 0,
+    "bearing": 0
+  },
+  'derby-camaragibe': {
+    "center": [
+      -34.939333,
+      -8.059397
+    ],
+    "zoom": 12,
+    "pitch": 0,
+    "bearing": 0
+  },
+  'conde-boa-vista': {
+    "center": [
+      -34.940673,
+      -8.047805
+    ],
+    "zoom": 12,
+    "pitch": 10.5,
+    "bearing": 50.73
   }
 };
 
@@ -109,22 +144,29 @@ function App() {
     }
   }, []);
 
-  // State to track map position (optional)
-  const [center, setCenter] = useState([-34.9951367, -8.0248778])
-  const [zoom, setZoom] = useState(15.12)
+  // State to track map position (optional) - Removed to prevent re-renders
 
   // Track map instance for DevHUD
   const [mapInstance, setMapInstance] = useState(null);
+
+  // Buffer the routes for 3D extrusion
+  const routeBuffered = useMemo(() => {
+    return turf.buffer(routeData, 0.008, { units: 'kilometers' }); // 15m radius
+  }, []);
+
+  const extraRouteBuffered = useMemo(() => {
+    return turf.buffer(extraRouteData, 0.005, { units: 'kilometers' }); // 15m radius
+  }, []);
 
   useEffect(() => {
     mapboxgl.accessToken = 'pk.eyJ1IjoiZGpjbzIxIiwiYSI6ImNtaXA3cDBlejBhaW0zZG9sbXZpOHFhYnQifQ.Bo43glKkuVwj310Z-L58oQ'
 
     // Backward Tour: Start at the END (camaragibe-recife) if alarm is shown
-    const initialView = showAlarm ? chapters['camaragibe-recife'] : chapters['est-camaragibe'];
+    const initialView = showAlarm ? chapters['camaragibe-recife'] : chapters['start'];
 
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
+      style: theme.map.style,
       center: initialView.center,
       zoom: initialView.zoom,
       pitch: initialView.pitch,
@@ -133,67 +175,62 @@ function App() {
 
     mapRef.current = map;
     setMapInstance(map);
+    window.map = map; // For debugging/verification
 
     // Disable scroll zoom
     map.scrollZoom.disable();
 
-    // Update state on move
-    map.on('move', () => {
-      const mapCenter = map.getCenter();
-      const mapZoom = map.getZoom();
-      setCenter([mapCenter.lng, mapCenter.lat]);
-      setZoom(mapZoom);
-    });
+    // Update state on move - Removed to prevent re-renders
 
     mapRef.current.on('load', () => {
+      console.log('Current Projection:', mapRef.current.getProjection().name);
+      console.log('Camera Options:', mapRef.current.getFreeCameraOptions());
 
-      // Add Extra Route (Part 5) - Blue
-      mapRef.current.addSource('extra-route', {
-        type: 'geojson',
-        data: extraRouteData
-      });
+      if (theme.map.camera) {
+        // Redundant safely check or runtime switch
+        mapRef.current.setCamera(theme.map.camera);
+      }
 
-      mapRef.current.addLayer({
-        id: 'extra-route',
-        type: 'line',
-        source: 'extra-route',
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round'
-        },
-        paint: {
-          'line-color': '#003399', // Blue
-          'line-width': 4,
-          'line-opacity': 0.8
-        }
-      });
-
-      mapRef.current.addSource('route', {
-        type: 'geojson',
-        data: routeData
-      });
-
-      mapRef.current.addLayer({
-        id: 'route',
-        type: 'line',
-        source: 'route',
-        layout: {
-          'line-join': 'round',
-          'line-cap': 'round'
-        },
-        paint: {
-          'line-color': '#FF0000', // Use the orange from OSM tags or similar
-          'line-width': 4,
-          'line-opacity': 0.8
-        }
-      });
-
-      // 3D BUILDINGS (From Remote)
+      // Find the first symbol layer to insert other layers below it (so labels stay on top)
       const layers = mapRef.current.getStyle().layers;
       const labelLayerId = layers.find(
         (layer) => layer.type === 'symbol' && layer.layout['text-field']
       ).id;
 
+      // 1. Min-width Fallback Lines (Lowest Priority)
+      mapRef.current.addSource('extra-route-min', {
+        type: 'geojson',
+        data: extraRouteData
+      });
+
+      mapRef.current.addLayer({
+        id: 'extra-route-min',
+        type: 'line',
+        source: 'extra-route-min',
+        paint: {
+          'line-color': theme.colors.transport.busLine,
+          'line-width': theme.map.layers.lineWidth,
+          'line-opacity': 1
+        }
+      }, labelLayerId);
+
+      mapRef.current.addSource('route-min', {
+        type: 'geojson',
+        data: routeData
+      });
+
+      mapRef.current.addLayer({
+        id: 'route-min',
+        type: 'line',
+        source: 'route-min',
+        paint: {
+          'line-color': theme.colors.transport.metroLine,
+          'line-width': theme.map.layers.lineWidth,
+          'line-opacity': 1
+        }
+      }, labelLayerId);
+
+      // 2. 3D Buildings (Fill-Extrusion)
       mapRef.current.addLayer(
         {
           'id': 'add-3d-buildings',
@@ -204,7 +241,7 @@ function App() {
           'minzoom': 15,
           'paint': {
             'fill-extrusion-opacity': 1,
-            'fill-extrusion-color': '#333333',
+            'fill-extrusion-color': theme.colors.transport.buildings,
             'fill-extrusion-height': [
               'interpolate',
               ['linear'],
@@ -228,6 +265,59 @@ function App() {
         },
         labelLayerId
       );
+
+      // 3. Route Extrusions (Highest Priority 3D)
+      mapRef.current.addSource('extra-route', {
+        type: 'geojson',
+        data: extraRouteBuffered
+      });
+
+      mapRef.current.addLayer({
+        id: 'extra-route',
+        type: 'fill-extrusion',
+        source: 'extra-route',
+        minzoom: 15,
+        paint: {
+          'fill-extrusion-color': theme.colors.transport.busLine, // Bus/Blue
+          'fill-extrusion-height': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            15,
+            0,
+            15.05,
+            theme.map.layers.extrusionHeight
+          ],
+          'fill-extrusion-base': 0,
+          'fill-extrusion-opacity': 1
+        }
+      }, labelLayerId);
+
+      mapRef.current.addSource('route', {
+        type: 'geojson',
+        data: routeBuffered
+      });
+
+      mapRef.current.addLayer({
+        id: 'route',
+        type: 'fill-extrusion',
+        source: 'route',
+        minzoom: 15,
+        paint: {
+          'fill-extrusion-color': theme.colors.transport.metroLine, // Metro/Orange
+          'fill-extrusion-height': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            15,
+            0,
+            15.05,
+            theme.map.layers.extrusionHeight
+          ],
+          'fill-extrusion-base': 0,
+          'fill-extrusion-opacity': 1
+        }
+      }, labelLayerId);
 
       // Initialize Flashlight Effect Layers (From Remote)
       const layersToEffect = ['poi-label', 'transit-label', 'road-label', 'road-number-shield', 'road-exit-shield'];
@@ -392,7 +482,7 @@ function App() {
     };
   }, []);
 
-  const handleChapterChange = (chapterName) => {
+  const handleChapterChange = useCallback((chapterName) => {
     if (showAlarm) return;
 
     // Direct FlyTo (Remote Style) - No observer needed
@@ -412,7 +502,7 @@ function App() {
         preloadChapter(mapRef.current, nextChapter);
       }
     }
-  };
+  }, [showAlarm]);
 
   return (
     <>

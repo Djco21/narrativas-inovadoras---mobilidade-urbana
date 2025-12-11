@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { theme } from './theme';
 
 const SubwayLines = ({ lines = [] }) => {
     const containerRef = useRef(null);
@@ -305,7 +306,7 @@ const SubwayLines = ({ lines = [] }) => {
             ))}
             {stations.map((s, i) => (
                 <g key={i} transform={`translate(${s.x}, ${s.y})`}>
-                    <circle r="9" fill="#fff" stroke="#000000" strokeWidth="5" />
+                    <circle r="9" fill={theme.colors.transport.stations.fill} stroke={theme.colors.transport.stations.stroke} strokeWidth="5" />
                 </g>
             ))}
         </svg>

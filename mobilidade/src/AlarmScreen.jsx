@@ -76,7 +76,7 @@ export default function AlarmScreen({ onDismiss }) {
           transition={{ delay: 0.2 }}
         >
           <div className="text-white text-9xl font-light tracking-tight">
-            06:00
+            05:00
           </div>
           <div className="text-gray-400 text-lg mt-4">Alarme</div>
         </motion.div>
