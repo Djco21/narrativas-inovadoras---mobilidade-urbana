@@ -33,6 +33,103 @@
       },
       "id": "way/87786800"
     },
+        {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/128445512",
+        "flood_prone": "yes",
+        "highway": "tertiary",
+        "lanes": "2",
+        "name": "Rua do Peixoto",
+        "oneway": "yes",
+        "postal_code": "50020-180",
+        "source:postal_code": "CNEFE"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -34.8854877,
+            -8.0698577
+          ],
+          [
+            -34.8849616,
+            -8.0702295
+          ]
+        ]
+      },
+      "id": "way/128445512"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/703556850",
+        "flood_prone": "yes",
+        "highway": "tertiary",
+        "lanes": "2",
+        "name": "Rua São João",
+        "oneway": "yes",
+        "postal_code": "50020-180",
+        "source:postal_code": "CNEFE"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -34.8851157,
+            -8.0691837
+          ],
+          [
+            -34.8854931,
+            -8.0697156
+          ],
+          [
+            -34.8855239,
+            -8.0697687
+          ],
+          [
+            -34.8855253,
+            -8.0697979
+          ],
+          [
+            -34.8855172,
+            -8.0698258
+          ],
+          [
+            -34.8854877,
+            -8.0698577
+          ]
+        ]
+      },
+      "id": "way/703556850"
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "@id": "way/128929018",
+        "flood_prone": "yes",
+        "highway": "tertiary",
+        "lanes": "2",
+        "name": "Rua do Peixoto",
+        "oneway": "yes",
+        "postal_code": "50020-180",
+        "source:postal_code": "CNEFE"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -34.8849616,
+            -8.0702295
+          ],
+          [
+            -34.8838797,
+            -8.0709604
+          ]
+        ]
+      },
+      "id": "way/128929018"
+    },
     {
       "type": "Feature",
       "properties": {
@@ -244,41 +341,6 @@
         ]
       },
       "id": "way/678493301"
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "@id": "way/703556851",
-        "highway": "secondary",
-        "lanes": "2",
-        "name": "Rua Floriano Peixoto",
-        "oneway": "yes",
-        "postal_code": "50020-068",
-        "source:postal_code": "CNEFE",
-        "surface": "paved"
-      },
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            -34.8841091,
-            -8.068987
-          ],
-          [
-            -34.8844662,
-            -8.0695144
-          ],
-          [
-            -34.8848416,
-            -8.0700474
-          ],
-          [
-            -34.8849616,
-            -8.0702295
-          ]
-        ]
-      },
-      "id": "way/703556851"
     },
     {
       "type": "Feature",
