@@ -121,7 +121,7 @@ const ProseText = ({ item, forwardRef }) => {
                         pointerEvents: 'auto',
                         width: '100%',
                         maxWidth: '1200px', // Full width as before
-                        margin: '2rem auto',
+                        margin: '10vh auto',
                         padding: '2rem 10vw',
                         textAlign: 'justify',
                         fontSize: '1.2rem',
