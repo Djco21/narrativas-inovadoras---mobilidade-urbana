@@ -2,12 +2,14 @@ export const theme = {
     colors: {
         background: {
             prologue: '#000000',
-            title: '#000000',
+            title: '#00000000',
             // narrative: 'transparent' // Managed by Content.jsx overlay now
         },
         narrative: {
             text: '#FFFFFF',
             title: '#FFFFFF', // Default title color
+            bold: '#FF0000',
+            italic: '#AAAAAA',
             cardBackground: '#222222DD',
             cardText: '#FFFFFF',
             cardBorder: 'transparent'

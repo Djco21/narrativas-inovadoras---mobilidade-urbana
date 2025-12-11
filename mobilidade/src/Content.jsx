@@ -10,9 +10,10 @@ import { componentRegistry } from './componentRegistry';
 const formatText = (text) => {
     if (!text) return null;
     // Replace **bold**
-    let formatted = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+    // Replace **bold**
+    let formatted = text.replace(/\*\*(.*?)\*\*/g, `<b style="color: ${theme.colors.narrative.bold}">$1</b>`);
     // Replace *italic*
-    formatted = formatted.replace(/\*(.*?)\*/g, '<i>$1</i>');
+    formatted = formatted.replace(/\*(.*?)\*/g, `<i style="color: ${theme.colors.narrative.italic}">$1</i>`);
 
     return <span dangerouslySetInnerHTML={{ __html: formatted }} />;
 };
@@ -329,20 +330,6 @@ const Content = ({ onChapterChange }) => {
                 ]}
             />
 
-            {/* === ZONE 1: WHITE BACKGROUND (TITLE) === */}
-            <div className="bg-zone" data-opacity="1" data-color="#fff" style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', minHeight: '50vh' }}>
-                <div
-                    className="section"
-                    style={{ zIndex: 1, position: 'relative', minWidth: '80vw', textAlign: 'center' }}
-                >
-                    <h1 ref={titleZoneRef} style={{ fontSize: '4rem', whiteSpace: 'nowrap', color: theme.colors.narrative.title }}>{narrativeData.title.text}</h1>
-
-                    {/* Diverging Start Points (Invisible) */}
-                    <div id="line-start-blue" style={{ position: 'absolute', top: '15vh', left: '35%', height: '10px', width: '10px' }} />
-                    <div id="line-start-orange" style={{ position: 'absolute', top: '15vh', left: '65%', height: '10px', width: '10px' }} />
-                </div>
-            </div>
-
 
             {/* === ZONE 2: TRANSPARENT BACKGROUND === */}
             <div className="bg-zone" data-opacity="0" style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -351,14 +338,22 @@ const Content = ({ onChapterChange }) => {
                     // Truncate content if index exceeds limit
                     if (index > renderLimit) return null;
 
-                    const isFirst = index === 0;
+                    // Calculate index of first body item (first non-intro item)
+                    // We do this inside map for simplicity, or could memoize outside
+                    // optimization: this findIndex is O(N) inside O(N) map -> O(N^2), but N is small (20-50). Acceptable.
+                    // Better: define it once outside. But I can't check 'narrativeData' easily outside without processing.
+                    // Let's rely on the fact that Prequel is 0, Title is 1. So Body is 2.
+                    // But to be robust:
+                    const isBodyStart = index === narrativeData.items.findIndex(i =>
+                        !(i.type === 'component' && (i.componentName === 'prequel' || i.componentName === 'title'))
+                    );
 
                     if (item.type === 'title') {
                         return (
                             <NarrativeTitle
                                 key={item.id}
                                 item={item}
-                                forwardRef={isFirst ? RMRRef : null}
+                                forwardRef={isBodyStart ? RMRRef : null}
                             />
                         );
                     }
@@ -368,7 +363,7 @@ const Content = ({ onChapterChange }) => {
                             <ProseText
                                 key={item.id}
                                 item={item}
-                                forwardRef={isFirst ? RMRRef : null}
+                                forwardRef={isBodyStart ? RMRRef : null}
                             />
                         );
                     }
@@ -383,6 +378,14 @@ const Content = ({ onChapterChange }) => {
                         // Special handling for deferred loading props
                         const needsControl = item.componentName === 'moto-accident-simulation';
 
+                        // RB: Ref Selection Logic
+                        let assignedRef = null;
+                        if (isBodyStart) {
+                            assignedRef = RMRRef;
+                        } else if (isTitleComponent) {
+                            assignedRef = titleZoneRef;
+                        }
+
                         return (
                             <div key={item.uniqueKey || item.id} className="section" style={{
                                 width: '100%',
@@ -396,7 +399,7 @@ const Content = ({ onChapterChange }) => {
                                     index={index}
                                     setRenderLimit={needsControl ? setRenderLimit : null}
                                     content={item.content}
-                                    forwardRef={isTitleComponent ? titleZoneRef : null}
+                                    forwardRef={assignedRef}
                                 />
                             </div>
                         );
@@ -408,7 +411,7 @@ const Content = ({ onChapterChange }) => {
                             card={item}
                             index={index}
                             onChapterChange={onChapterChange}
-                            forwardRef={index === 0 ? RMRRef : null}
+                            forwardRef={isBodyStart ? RMRRef : null}
                         />
                     );
                 })}
