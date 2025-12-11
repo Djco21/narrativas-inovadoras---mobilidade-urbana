@@ -15,6 +15,7 @@ export const theme = {
         transport: {
             busLine: '#ff8000',
             metroLine: '#e70505',
+            busLineBack: '#009000',
             lineLeft: '#003399',
             lineRight: '#FF9900', // SVG Decoration Color
             buildings: '#333333',

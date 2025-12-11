@@ -159,6 +159,10 @@ function App() {
     return turf.buffer(extraRouteData, 0.005, { units: 'kilometers' }); // 15m radius
   }, []);
 
+  const novohotelBuffered = useMemo(() => {
+    return turf.buffer(novohotelDerbyData, 0.005, { units: 'kilometers' });
+  }, []);
+
   useEffect(() => {
     mapboxgl.accessToken = 'pk.eyJ1IjoiZGpjbzIxIiwiYSI6ImNtaXA3cDBlejBhaW0zZG9sbXZpOHFhYnQifQ.Bo43glKkuVwj310Z-L58oQ'
 
@@ -204,12 +208,28 @@ function App() {
         data: extraRouteData
       });
 
+      mapRef.current.addSource('novohotel-min', {
+        type: 'geojson',
+        data: novohotelDerbyData
+      });
+
       mapRef.current.addLayer({
         id: 'extra-route-min',
         type: 'line',
         source: 'extra-route-min',
         paint: {
           'line-color': theme.colors.transport.busLine,
+          'line-width': theme.map.layers.lineWidth,
+          'line-opacity': 1
+        }
+      }, labelLayerId);
+
+      mapRef.current.addLayer({
+        id: 'novohotel-min',
+        type: 'line',
+        source: 'novohotel-min',
+        paint: {
+          'line-color': theme.colors.transport.busLineBack,
           'line-width': theme.map.layers.lineWidth,
           'line-opacity': 1
         }
@@ -273,13 +293,39 @@ function App() {
         data: extraRouteBuffered
       });
 
+      mapRef.current.addSource('novohotel', {
+        type: 'geojson',
+        data: novohotelBuffered
+      });
+
       mapRef.current.addLayer({
         id: 'extra-route',
         type: 'fill-extrusion',
         source: 'extra-route',
         minzoom: 15,
         paint: {
-          'fill-extrusion-color': theme.colors.transport.busLine, // Bus/Blue
+          'fill-extrusion-color': theme.colors.transport.busLineBack, // Bus/Blue
+          'fill-extrusion-height': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            15,
+            0,
+            15.05,
+            theme.map.layers.extrusionHeight
+          ],
+          'fill-extrusion-base': 0,
+          'fill-extrusion-opacity': 1
+        }
+      }, labelLayerId);
+
+      mapRef.current.addLayer({
+        id: 'novohotel',
+        type: 'fill-extrusion',
+        source: 'novohotel',
+        minzoom: 15,
+        paint: {
+          'fill-extrusion-color': theme.colors.transport.busLineBack,
           'fill-extrusion-height': [
             'interpolate',
             ['linear'],
