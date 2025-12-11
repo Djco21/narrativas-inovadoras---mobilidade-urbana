@@ -57,7 +57,7 @@ body {
   flex-direction: column;
   /* align-items: center; Removed to allow individual alignment */
   /* padding-top: 50vh; REMOVED to prevent overflow above strip */
-  padding-bottom: 50vh;
+  /* padding-bottom: 50vh; REMOVED to fix duplicate spacing */
 }
 
 /* Base card style */

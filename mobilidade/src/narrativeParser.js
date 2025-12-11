@@ -33,6 +33,7 @@ export function parseNarrative(text) {
             return;
         }
 
+
         // Check for # Title syntax (Level 1)
         if (block.startsWith('#')) {
             flushTextBlock();
@@ -41,6 +42,20 @@ export function parseNarrative(text) {
                 level: 1,
                 id: `title-${Math.random().toString(36).substr(2, 9)}`,
                 text: block.replace(/^#+\s*/, '')
+            });
+            return;
+        }
+
+        // Check for [component] syntax
+        const componentMatch = block.match(/^\[component:\s*([\w-]+)\]/i);
+        if (componentMatch) {
+            flushTextBlock();
+            const componentName = componentMatch[1];
+            items.push({
+                type: 'component',
+                id: `component-${Math.random().toString(36).substr(2, 9)}`,
+                componentName: componentName,
+                content: block.replace(/^\[component:\s*[\w-]+\]\s*/i, '').trim() // Optional content if any
             });
             return;
         }

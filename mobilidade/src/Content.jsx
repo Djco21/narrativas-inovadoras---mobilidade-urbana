@@ -4,6 +4,7 @@ import SubwayLines from './SubwayLines';
 import InteractionBlocker from './InteractionBlocker';
 import { narrativeData } from './narrativeData';
 import { theme } from './theme';
+import { componentRegistry } from './componentRegistry';
 
 // Simple markdown formatter
 const formatText = (text) => {
@@ -128,6 +129,7 @@ const ProseText = ({ item, forwardRef }) => {
                         lineHeight: '1.8',
                         color: theme.colors.narrative.text,
                         background: 'transparent',
+                        position: 'relative', // Fix framer-motion warning
                         // textShadow removed as requested
                     }}>
                     {paragraphs.map((para, i) => (
@@ -235,6 +237,7 @@ const NarrativeCard = ({ card, index, onChapterChange, forwardRef }) => {
                 className={`section card-filled ${card.align === 'right' ? 'card-right' : 'card-left'}`}
                 id={card.id}
                 style={{
+                    position: 'relative', // Fix framer-motion warning
                     zIndex: 1,
                     pointerEvents: 'auto',
                     backgroundColor: theme.colors.narrative.cardBackground,
@@ -298,6 +301,9 @@ const Content = ({ onChapterChange }) => {
         });
     }, []); // Run ONCE on mount
 
+    // State for Dynamic Render Limiting (Scroll Blocking)
+    const [renderLimit, setRenderLimit] = useState(Infinity);
+
     return (
         <>
             {/* Overlay 1: Color Layer (Top of Blur, Bottom of Content) */}
@@ -342,6 +348,9 @@ const Content = ({ onChapterChange }) => {
             <div className="bg-zone" data-opacity="0" style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
 
                 {narrativeData.items.map((item, index) => {
+                    // Truncate content if index exceeds limit
+                    if (index > renderLimit) return null;
+
                     const isFirst = index === 0;
 
                     if (item.type === 'title') {
@@ -363,6 +372,36 @@ const Content = ({ onChapterChange }) => {
                             />
                         );
                     }
+
+                    if (item.type === 'component') {
+                        const ComponentIdx = componentRegistry[item.componentName];
+                        if (!ComponentIdx) return null;
+
+                        // Special handling for 'title' component to attach the Background Ref
+                        const isTitleComponent = item.componentName === 'title';
+
+                        // Special handling for deferred loading props
+                        const needsControl = item.componentName === 'moto-accident-simulation';
+
+                        return (
+                            <div key={item.uniqueKey || item.id} className="section" style={{
+                                width: '100%',
+                                maxWidth: '1200px',
+                                margin: '5vh auto',
+                                padding: '0',
+                                pointerEvents: 'auto',
+                                zIndex: 2
+                            }}>
+                                <ComponentIdx
+                                    index={index}
+                                    setRenderLimit={needsControl ? setRenderLimit : null}
+                                    content={item.content}
+                                    forwardRef={isTitleComponent ? titleZoneRef : null}
+                                />
+                            </div>
+                        );
+                    }
+
                     return (
                         <NarrativeCard
                             key={item.id}
@@ -373,6 +412,45 @@ const Content = ({ onChapterChange }) => {
                         />
                     );
                 })}
+
+
+                {/* Conclusion / Credits Section (Only visible when unlocked) */}
+                {renderLimit === Infinity && (
+                    <div className="section conclusion" style={{
+                        minHeight: '50vh',
+                        width: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        marginTop: '4rem'
+                    }}>
+                        {/* Placeholder for Credits/Socials */}
+                        <div style={{ height: '100px' }} />
+                    </div>
+                )}
+
+                {/* FALLBACK REFS: Prevent framer-motion crashes if items are missing or hidden by renderLimit */}
+                <div
+                    style={{ position: 'absolute', top: 0, height: 1, width: 1, pointerEvents: 'none', opacity: 0 }}
+                    ref={(el) => {
+                        if (!el) return;
+
+                        // Check First Card (RMRRef)
+                        const firstCardIdx = narrativeData.items.findIndex(i => i.type === 'card');
+                        // If card doesn't exist OR if it's clipped by renderLimit, we must attach ref here
+                        if (firstCardIdx === -1 || firstCardIdx > renderLimit) {
+                            if (RMRRef && !RMRRef.current) RMRRef.current = el;
+                        }
+
+                        // Check Title (titleZoneRef)
+                        const titleIdx = narrativeData.items.findIndex(i => i.componentName === 'title');
+                        // If title doesn't exist OR if it's clipped by renderLimit AND we haven't attached it yet
+                        if (titleIdx === -1 || titleIdx > renderLimit) {
+                            if (titleZoneRef && !titleZoneRef.current) titleZoneRef.current = el;
+                        }
+                    }}
+                />
             </div>
         </>
     );
