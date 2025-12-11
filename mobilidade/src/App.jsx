@@ -12,87 +12,20 @@ import routeData from './assets/route.json';
 import extraRouteData from './assets/osm_elements_part5.json';
 import novohotelDerbyData from './assets/osm_elements_part6.json';
 import { preloadChapter } from './preloadUtils';
+import { getChapters } from './storyConfig';
 import AlarmScreen from './AlarmScreen';
 import Content from './Content';
 
-import PrologueSection from './PrologueSection';
+
 import DevCameraHUD from './DevCameraHUD';
 import { theme } from './theme';
 
 
 // preloadChapter('est-camaragibe');
 
-const chapters = {
-  'start': {
-    center: [-34.8959673, -8.0760724],
-    zoom: 11,
-    pitch: 45,
-    bearing: 0
-  },
-  'est-camaragibe': {
-    "center": [
-      -34.992555,
-      -8.024181
-    ],
-    "zoom": 16,
-    "pitch": 71.6,
-    "bearing": 104.76
-  },
-  'camaragibe-recife': {
-    "center": [
-      -34.938408,
-      -8.077322
-    ],
-    "zoom": 12,
-    "pitch": 0,
-    "bearing": 45.82
-  },
-  'est-recife': {
-    "center": [
-      -34.879366,
-      -8.067496
-    ],
-    "zoom": 15,
-    "pitch": 58.95,
-    "bearing": 66.24
-  },
-  'novotel': {
-    "center": [
-      -34.875888,
-      -8.070171
-    ],
-    "zoom": 16,
-    "pitch": 66.79,
-    "bearing": 12.79
-  },
-  'derby': {
-    "center": [
-      -34.896803,
-      -8.061814
-    ],
-    "zoom": 14,
-    "pitch": 0,
-    "bearing": 0
-  },
-  'derby-camaragibe': {
-    "center": [
-      -34.939333,
-      -8.059397
-    ],
-    "zoom": 12,
-    "pitch": 0,
-    "bearing": 0
-  },
-  'conde-boa-vista': {
-    "center": [
-      -34.940673,
-      -8.047805
-    ],
-    "zoom": 12,
-    "pitch": 10.5,
-    "bearing": 50.73
-  }
-};
+// preloadChapter('est-camaragibe');
+
+const chapters = getChapters();
 
 function App() {
 
@@ -563,7 +496,6 @@ function App() {
         {/* Wrapper */}
         <div className={!showAlarm ? "content-container" : ""} style={{ position: 'relative', zIndex: 1, width: '100%', pointerEvents: 'none' }}>
           <div style={{ position: 'relative', width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <PrologueSection transparent={!showAlarm} />
             {/* Pass handleChapterChange to Content */}
             {!showAlarm && <Content onChapterChange={handleChapterChange} />}
           </div>
