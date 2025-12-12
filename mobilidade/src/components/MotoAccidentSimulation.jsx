@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Matter from 'matter-js';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const MotoAccidentSimulation = ({ index, setRenderLimit }) => {
+const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
     const sceneRef = useRef(null);
     const engineRef = useRef(null);
     const renderRef = useRef(null);
@@ -16,6 +17,8 @@ const MotoAccidentSimulation = ({ index, setRenderLimit }) => {
 
     // React State for UI
     const [mortes, setMortes] = useState(0);
+    const [activeSectionIndex, setActiveSectionIndex] = useState(0);
+    const [isFinale, setIsFinale] = useState(false);
 
     // Constants
     const TARGET_PESSOAS = 693;
@@ -24,6 +27,10 @@ const MotoAccidentSimulation = ({ index, setRenderLimit }) => {
     const BASE_SPEED = 50;
     const MIN_SPAWN_DELAY = 10;
     const motoTexture = "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f3cd.png";
+
+    // Text Sections
+    const rawSections = Array.isArray(content) ? content : (content ? content.split(/\n\s*\n/) : []);
+    const textSections = ['', ...rawSections];
 
     // --- Helper Functions ---
     const getRampProgress = () => {
@@ -139,6 +146,25 @@ const MotoAccidentSimulation = ({ index, setRenderLimit }) => {
         const passengers = motoCandidate.passengers || 1;
         mortesRef.current += passengers;
         setMortes(mortesRef.current);
+
+        // Check for Finale Trigger
+        if (mortesRef.current >= TARGET_PESSOAS) {
+            if (!isFinale) {
+                setIsFinale(true);
+                // Unlock scroll after animation delay
+                setTimeout(() => {
+                    if (setRenderLimit) setRenderLimit(Infinity);
+                }, 1600);
+            }
+        }
+
+        // Update Text Section (Only if not in finale state)
+        if (textSections.length > 0) {
+            const progress = mortesRef.current / TARGET_PESSOAS;
+            const sectionIndex = Math.floor(progress * textSections.length);
+            const idx = Math.min(sectionIndex, textSections.length - 1);
+            setActiveSectionIndex(idx);
+        }
     };
 
     // --- Deferred Loading / Scroll Lock Logic ---
@@ -146,7 +172,6 @@ const MotoAccidentSimulation = ({ index, setRenderLimit }) => {
     // 1. Truncate Content on Mount
     useEffect(() => {
         if (setRenderLimit && typeof index === 'number') {
-            // Check if we are already finished (e.g. hot reload or remount)
             if (spawnedPeopleRef.current < TARGET_PESSOAS) {
                 setRenderLimit(index);
             }
@@ -158,19 +183,17 @@ const MotoAccidentSimulation = ({ index, setRenderLimit }) => {
         const handleWheel = (e) => {
             // If already finished, ensure we are unlocked and ignore
             if (spawnedPeopleRef.current >= TARGET_PESSOAS) {
-                if (setRenderLimit) setRenderLimit(Infinity);
+                // Should be unlocked by timeout, but if user scrolls aggressively after fin, ensure it's open
+                // Actually, relying on timeout is safer for the "Wait for animation" UX.
+                // We'll let the timeout unlock it.
                 return;
             }
 
-            // Drive simulation if scrolling DOWN and at the BOTTOM
             if (e.deltaY > 0) {
-                // Check if we are at bottom of page
-                // Use a small buffer (e.g. 50px) to account for mobile bars etc
                 const distToBottom = document.documentElement.scrollHeight - (window.innerHeight + window.scrollY);
 
-                // If we are close to bottom, or if the user is trying to scroll past
                 if (distToBottom < 50) {
-                    e.preventDefault(); // Stop overscroll, focus on simulation
+                    e.preventDefault();
 
                     const t = getRampProgress();
                     const spawnedFirst = spawnMotoWithCooldown();
@@ -179,11 +202,6 @@ const MotoAccidentSimulation = ({ index, setRenderLimit }) => {
                         if (Math.random() < t) {
                             setTimeout(() => spawnMotoWithCooldown(), 120);
                         }
-                    }
-
-                    // Check completion
-                    if (spawnedPeopleRef.current >= TARGET_PESSOAS) {
-                        if (setRenderLimit) setRenderLimit(Infinity);
                     }
                 }
             }
@@ -219,10 +237,8 @@ const MotoAccidentSimulation = ({ index, setRenderLimit }) => {
         Matter.Render.run(render);
         Matter.Runner.run(runner, engine);
 
-        // Initial setup
         createBounds();
 
-        // Event Listeners
         Matter.Events.on(engine, 'collisionStart', (event) => {
             const pairs = event.pairs;
             for (let i = 0; i < pairs.length; i++) {
@@ -232,7 +248,6 @@ const MotoAccidentSimulation = ({ index, setRenderLimit }) => {
             }
         });
 
-        // Resize
         const handleResize = () => createBounds();
         window.addEventListener('resize', handleResize);
 
@@ -246,6 +261,12 @@ const MotoAccidentSimulation = ({ index, setRenderLimit }) => {
         };
     }, []);
 
+    const formatSimText = (text) => {
+        if (!text) return null;
+        let formatted = text.replace(/\*\*(.*?)\*\*/g, '<b style="color: #fff">$1</b>');
+        return <span dangerouslySetInnerHTML={{ __html: formatted }} />;
+    };
+
     return (
         <div style={{
             position: 'relative',
@@ -254,7 +275,7 @@ const MotoAccidentSimulation = ({ index, setRenderLimit }) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            pointerEvents: 'none' // Allow click-through on wrapper if needed, but inner needs auto
+            pointerEvents: 'none'
         }}>
             <div style={{
                 position: 'relative',
@@ -266,40 +287,82 @@ const MotoAccidentSimulation = ({ index, setRenderLimit }) => {
                 pointerEvents: 'auto', // Re-enable pointer events for the simulation
                 boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
             }}>
-                {/* UI Elements */}
-                <div style={{
-                    position: 'absolute',
-                    top: '16px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    padding: '8px 14px',
-                    background: 'rgba(0, 0, 0, 0.6)',
-                    color: '#f5f5f5',
-                    borderRadius: '999px',
-                    fontSize: '14px',
-                    pointerEvents: 'none',
-                    zIndex: 10,
-                    whiteSpace: 'nowrap'
-                }}>
-                    Role para BAIXO para continuar a história ➡️
-                </div>
+
+                {/* Death Counter - Animated */}
+                <motion.div
+                    initial={false}
+                    animate={isFinale ? {
+                        top: '50%',
+                        scale: 1.5, // Reduced from 2.5
+                        opacity: 1
+                    } : {
+                        top: '18%',
+                        scale: 1,
+                        opacity: 1
+                    }}
+                    transition={{
+                        duration: 1.5,
+                        ease: "easeInOut"
+                    }}
+                    style={{
+                        position: 'absolute',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        x: '-50%',
+                        y: '-50%',
+                        color: '#ffffff', // Plain white
+                        zIndex: 30,
+                        fontWeight: 700,
+                        textAlign: 'center',
+                        pointerEvents: 'none',
+                        textShadow: '0 0 20px rgba(0,0,0,0.8)' // Added shadow
+                    }}
+                >
+                    <span style={{ display: 'block', fontSize: '96px', lineHeight: 1 }}>{mortes}</span>
+                    <span style={{ display: 'block', fontSize: '24px', opacity: 0.95, maxWidth: '700px', margin: '0 auto' }}>
+                        mortes por acidente de moto nesse ano
+                    </span>
+                </motion.div>
+
+                {/* Text Section - Centered with Fade Transition */}
                 <div style={{
                     position: 'absolute',
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    color: '#f5f5f5',
+                    width: '80%',
+                    maxWidth: '600px',
                     zIndex: 20,
-                    fontWeight: 700,
                     textAlign: 'center',
                     pointerEvents: 'none',
-                    mixBlendMode: 'difference'
+                    minHeight: '100px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                 }}>
-                    <span style={{ display: 'block', fontSize: '120px', lineHeight: 1 }}>{mortes}</span>
-                    <span style={{ display: 'block', fontSize: '28px', opacity: 0.95, maxWidth: '700px', margin: '0 auto' }}>
-                        mortes por acidente de moto nesse ano
-                    </span>
+                    <AnimatePresence mode='wait'>
+                        {/* Show text only if NOT in finale, or let it fade out when isFinale becomes true */}
+                        {!isFinale && textSections.length > 0 && activeSectionIndex < textSections.length && (
+                            <motion.div
+                                key={activeSectionIndex}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.5 }}
+                                style={{
+                                    color: '#ddd',
+                                    fontSize: '1.6rem',
+                                    lineHeight: 1.6,
+                                    textShadow: '0 0 40px rgba(0,0,0,1)', // Strong diffuse shadow
+                                    fontWeight: 500
+                                }}
+                            >
+                                {formatSimText(textSections[activeSectionIndex])}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
+
                 <div ref={sceneRef} style={{ width: '100%', height: '100%' }} />
             </div>
         </div>
