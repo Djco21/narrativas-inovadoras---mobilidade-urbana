@@ -1,13 +1,13 @@
 export const storyConfig = {
     'start': {
         camera: {
-        "center": [
-            -34.9952,
-            -8.024595
-        ],
-        "zoom": 16,
-        "pitch": 69.6,
-        "bearing": 103.16
+            "center": [
+                -34.9952,
+                -8.024595
+            ],
+            "zoom": 16,
+            "pitch": 69.6,
+            "bearing": 103.16
         },
         triggers: ['card-camaragibe-recife']
     },
@@ -27,7 +27,7 @@ export const storyConfig = {
             pitch: 71.6,
             bearing: 104.76
         },
-        triggers: ['card-camaragibe']
+        triggers: ['card-camaragibe'],
     },
     'camaragibe-recife': {
         camera: {
@@ -74,7 +74,7 @@ export const storyConfig = {
             "zoom": 12,
             "pitch": 0,
             "bearing": 0
-            },
+        },
         triggers: ['card-derby-camaragibe', 'conclusao-dormir']
     },
     'conde-boa-vista': {
@@ -131,4 +131,64 @@ export const getChapters = () => {
         chapters[chapterId] = config.camera;
     });
     return chapters;
+};
+
+// Route Triggers Configuration (CardID -> RouteVisibility)
+export const routeTriggers = {
+    'card-camaragibe-recife': {
+        route: false,
+        extraRoute: false,
+        novotel: false,
+        part7: false,
+        part8: false
+    },
+    'card-camaragibe': {
+        route: false,
+        extraRoute: false,
+        novotel: false,
+        part7: false,
+        part8: false
+    },
+    'card-percurso': {
+        route: true,
+        extraRoute: false,
+        novotel: false,
+        part7: false,
+        part8: false
+    },
+    'card-recife': {
+        extraRoute: true,
+        route: true,
+        novotel: false,
+        part7: false,
+        part8: false
+    },
+    'card-cais-derby': {
+        novotel: true,
+        extraRoute: true,
+        route: true,
+        part7: false,
+        part8: false
+    },
+    'card-derby-camaragibe': {
+        part7: true,
+        extraRoute: true,
+        route: true,
+        novotel: true,
+        part8: false
+    },
+    'ida-ubermoto': {
+        part8: true,
+        part7: false,
+        novotel: false,
+        extraRoute: false,
+        route: false
+    },
+    'conclusao-dormir': {
+        part8: true,
+        part7: true,
+        novotel: true,
+        extraRoute: true,
+        route: true
+    }
 };

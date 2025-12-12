@@ -14,9 +14,10 @@ import novohotelDerbyData from './assets/osm_elements_part6.json';
 import part7Data from './assets/osm_elements_part7.json';
 import part8Data from './assets/osm_elements_part8.json';
 import { preloadChapter } from './preloadUtils';
-import { getChapters } from './storyConfig';
+import { getChapters, routeTriggers } from './storyConfig';
 import AlarmScreen from './AlarmScreen';
 import Content from './Content';
+import { useRouteAnimation } from './useRouteAnimation';
 
 
 import DevCameraHUD from './DevCameraHUD';
@@ -33,6 +34,22 @@ function App() {
 
   const mapRef = useRef()
   const mapContainerRef = useRef()
+
+  // --- CONFIGURAÇÃO DE VISIBILIDADE DAS ROTAS EXTRAS ---
+  // --- CONFIGURAÇÃO DE VISIBILIDADE DAS ROTAS EXTRAS ---
+  // Estado inicial das rotas (agora suporta objetos de config)
+  const [routeVisibility, setRouteVisibility] = useState({
+    route: { visible: false, speed: 1 },
+    extraRoute: { visible: false, speed: 1 },
+    novotel: { visible: false, speed: 1 },
+    part7: { visible: false, speed: 1 },
+    part8: { visible: false, speed: 1 }
+  });
+  // -----------------------------------------------------
+  // -----------------------------------------------------
+
+  // Hooks de Animação
+  // mapInstance is needed.
 
   // Control Alarm visibility
   const [showAlarm, setShowAlarm] = useState(() => {
@@ -80,31 +97,16 @@ function App() {
     }
   }, []);
 
-  // State to track map position (optional) - Removed to prevent re-renders
-
   // Track map instance for DevHUD
   const [mapInstance, setMapInstance] = useState(null);
 
-  // Buffer the routes for 3D extrusion
-  const routeBuffered = useMemo(() => {
-    return turf.buffer(routeData, 0.008, { units: 'kilometers' }); // 15m radius
-  }, []);
+  // Animation Hooks - They trigger updates internally on the map sources
+  useRouteAnimation(mapInstance, 'route-min', 'route', routeData, routeVisibility.route);
+  useRouteAnimation(mapInstance, 'extra-route-min', 'extra-route', extraRouteData, routeVisibility.extraRoute);
+  useRouteAnimation(mapInstance, 'novohotel-min', 'novohotel', novohotelDerbyData, routeVisibility.novotel);
+  useRouteAnimation(mapInstance, 'part7-min', 'part7', part7Data, routeVisibility.part7);
+  useRouteAnimation(mapInstance, 'part8-min', 'part8', part8Data, routeVisibility.part8);
 
-  const extraRouteBuffered = useMemo(() => {
-    return turf.buffer(extraRouteData, 0.005, { units: 'kilometers' }); // 15m radius
-  }, []);
-
-  const novohotelBuffered = useMemo(() => {
-    return turf.buffer(novohotelDerbyData, 0.005, { units: 'kilometers' });
-  }, []);
-
-  const part7Buffered = useMemo(() => {
-    return turf.buffer(part7Data, 0.005, { units: 'kilometers' });
-  }, []);
-  
-  const part8Buffered = useMemo(() => {
-    return turf.buffer(part8Data, 0.005, { units: 'kilometers' });
-  }, []);
 
   useEffect(() => {
     mapboxgl.accessToken = 'pk.eyJ1IjoiZGpjbzIxIiwiYSI6ImNtaXA3cDBlejBhaW0zZG9sbXZpOHFhYnQifQ.Bo43glKkuVwj310Z-L58oQ'
@@ -128,6 +130,8 @@ function App() {
     // Disable scroll zoom
     map.scrollZoom.disable();
 
+
+
     // Update state on move - Removed to prevent re-renders
 
     mapRef.current.on('load', () => {
@@ -146,25 +150,13 @@ function App() {
       ).id;
 
       // 1. Min-width Fallback Lines (Lowest Priority)
-      mapRef.current.addSource('extra-route-min', {
-        type: 'geojson',
-        data: extraRouteData
-      });
+      // Initialize with EMPTY data so animation starts from 0
+      const emptyGeoJSON = turf.featureCollection([]);
 
-      mapRef.current.addSource('novohotel-min', {
-        type: 'geojson',
-        data: novohotelDerbyData
-      });
-
-      mapRef.current.addSource('part7-min', {
-        type: 'geojson',
-        data: part7Data
-      });
-
-      mapRef.current.addSource('part8-min', {
-        type: 'geojson',
-        data: part8Data
-      });
+      mapRef.current.addSource('extra-route-min', { type: 'geojson', data: emptyGeoJSON });
+      mapRef.current.addSource('novohotel-min', { type: 'geojson', data: emptyGeoJSON });
+      mapRef.current.addSource('part7-min', { type: 'geojson', data: emptyGeoJSON });
+      mapRef.current.addSource('part8-min', { type: 'geojson', data: emptyGeoJSON });
 
       mapRef.current.addLayer({
         id: 'extra-route-min',
@@ -210,10 +202,7 @@ function App() {
         }
       }, labelLayerId);
 
-      mapRef.current.addSource('route-min', {
-        type: 'geojson',
-        data: routeData
-      });
+      mapRef.current.addSource('route-min', { type: 'geojson', data: emptyGeoJSON });
 
       mapRef.current.addLayer({
         id: 'route-min',
@@ -262,26 +251,11 @@ function App() {
         labelLayerId
       );
 
-      // 3. Route Extrusions (Highest Priority 3D)
-      mapRef.current.addSource('extra-route', {
-        type: 'geojson',
-        data: extraRouteBuffered
-      });
-
-      mapRef.current.addSource('novohotel', {
-        type: 'geojson',
-        data: novohotelBuffered
-      });
-
-      mapRef.current.addSource('part7', {
-        type: 'geojson',
-        data: part7Buffered
-      });
-
-      mapRef.current.addSource('part8', {
-        type: 'geojson',
-        data: part8Buffered
-      });
+      // 3. Route Extrusions (Highest Priority 3D) - Init with EMPTY
+      mapRef.current.addSource('extra-route', { type: 'geojson', data: emptyGeoJSON });
+      mapRef.current.addSource('novohotel', { type: 'geojson', data: emptyGeoJSON });
+      mapRef.current.addSource('part7', { type: 'geojson', data: emptyGeoJSON });
+      mapRef.current.addSource('part8', { type: 'geojson', data: emptyGeoJSON });
 
       mapRef.current.addLayer({
         id: 'extra-route',
@@ -367,10 +341,7 @@ function App() {
         }
       }, labelLayerId);
 
-      mapRef.current.addSource('route', {
-        type: 'geojson',
-        data: routeBuffered
-      });
+      mapRef.current.addSource('route', { type: 'geojson', data: emptyGeoJSON });
 
       mapRef.current.addLayer({
         id: 'route',
@@ -413,38 +384,7 @@ function App() {
         });
       };
 
-      if (showAlarm) {
-        const chapterKeys = Object.keys(chapters);
-        // We want to go from end BACK to start
-        let currentIndex = chapterKeys.length - 1;
-
-        const playNextStep = () => {
-          // Check if tour is still active (alarm still visible)
-          if (!alarmVisibleRef.current) return;
-
-          currentIndex--;
-          if (currentIndex < 0) {
-            return;
-          }
-
-          const targetChapter = chapters[chapterKeys[currentIndex]];
-
-          mapRef.current.flyTo({
-            ...targetChapter,
-            duration: 2000,
-            essential: true
-          });
-
-          mapRef.current.once('moveend', () => {
-            if (alarmVisibleRef.current) {
-              playNextStep();
-            }
-          });
-        };
-
-        // Start the chain
-        playNextStep();
-      }
+      // Removed setInitialLayerVisibility - useRouteAnimation handles it via hook
     });
 
     return () => {
@@ -454,6 +394,9 @@ function App() {
 
   // Interaction Blocking Logic & Flashlight Tracking
   const [isInteractionBlocked, setInteractionBlocked] = useState(false);
+
+  // Removed useEffect for routeVisibility - handled by hooks now
+
   const isInteractionBlockedRef = useRef(false);
   const isDraggingRef = useRef(false);
 
@@ -503,8 +446,32 @@ function App() {
 
 
 
-  const handleChapterChange = useCallback((chapterName) => {
+  const handleChapterChange = useCallback((chapterName, cardId) => {
     if (showAlarm) return;
+
+    // Update Route Visibility if defined in card triggers
+    // This must run even if chapter doesn't change
+    console.log('Active Card ID:', cardId);
+    if (cardId && routeTriggers[cardId]) {
+      console.log('Appplying route trigger:', routeTriggers[cardId]);
+
+      const newTrigger = routeTriggers[cardId];
+      // Normalize triggers to object format { visible, speed }
+      const normalizedTrigger = {};
+      Object.keys(newTrigger).forEach(key => {
+        const value = newTrigger[key];
+        if (typeof value === 'boolean') {
+          normalizedTrigger[key] = { visible: value, speed: 1 };
+        } else if (typeof value === 'object') {
+          normalizedTrigger[key] = { visible: value.visible, speed: value.speed !== undefined ? value.speed : 1 };
+        }
+      });
+
+      setRouteVisibility(prev => ({
+        ...prev,
+        ...normalizedTrigger
+      }));
+    }
 
     // Direct FlyTo (Remote Style) - No observer needed
     const chapter = chapters[chapterName];

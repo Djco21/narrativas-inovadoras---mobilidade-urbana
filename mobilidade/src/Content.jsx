@@ -257,9 +257,9 @@ const NarrativeCard = ({ card, index, onChapterChange, forwardRef }) => {
     });
 
     useEffect(() => {
-        if (isInView && card.triggerAfter) {
-            console.log(`>>> TRIGGERING CHAPTER for ${card.id}: ${card.triggerAfter}`);
-            onChapterChange(card.triggerAfter);
+        if (isInView) {
+            console.log(`>>> CARD VIEW: ${card.id} (Trigger: ${card.triggerAfter})`);
+            onChapterChange(card.triggerAfter, card.id);
         }
     }, [isInView, card.triggerAfter, onChapterChange, card.id]);
 
