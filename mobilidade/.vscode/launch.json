@@ -33,6 +33,17 @@
                 "build-preview"
             ],
             "console": "integratedTerminal"
+        },
+        {
+            "name": "Update Narrative",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": [
+                "run",
+                "update-narrative"
+            ],
+            "console": "integratedTerminal"
         }
     ]
 }
