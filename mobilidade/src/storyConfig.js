@@ -1,6 +1,18 @@
 export const storyConfig = {
     'start': {
         camera: {
+        "center": [
+            -34.9952,
+            -8.024595
+        ],
+        "zoom": 16,
+        "pitch": 69.6,
+        "bearing": 103.16
+        },
+        triggers: ['card-camaragibe-recife']
+    },
+    'recife': {
+        camera: {
             center: [-34.8959673, -8.0760724],
             zoom: 11,
             pitch: 45,
@@ -55,11 +67,14 @@ export const storyConfig = {
     },
     'derby-camaragibe': {
         camera: {
-            center: [-34.939333, -8.059397],
-            zoom: 12,
-            pitch: 0,
-            bearing: 0
-        },
+            "center": [
+                -34.959173,
+                -8.059377
+            ],
+            "zoom": 12,
+            "pitch": 0,
+            "bearing": 0
+            },
         triggers: ['card-derby-camaragibe', 'conclusao-dormir']
     },
     'conde-boa-vista': {
