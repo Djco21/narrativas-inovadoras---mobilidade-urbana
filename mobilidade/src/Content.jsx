@@ -538,6 +538,9 @@ const Content = ({ onChapterChange, showAlarm }) => {
         });
     }, []);
 
+    // Do not render Framer Motion components until Alarm is dismissed
+    if (showAlarm) return null;
+
     if (isLoading) {
         return (
             <div style={{
@@ -558,8 +561,6 @@ const Content = ({ onChapterChange, showAlarm }) => {
             </div>
         );
     }
-
-    if (showAlarm) return null;
 
     return (
         <NarrativeDisplay
