@@ -472,7 +472,7 @@ const Content = ({ onChapterChange }) => {
                                 margin: item.componentName === 'moto-accident-simulation' ? '0' : '5vh auto',
                                 padding: '0',
                                 pointerEvents: isTitleComponent ? 'none' : 'auto',
-                                zIndex: 'auto'
+                                zIndex: item.componentName === 'conclusion' ? 0 : 2
                             }}>
                                 <ComponentIdx
                                     index={index}
