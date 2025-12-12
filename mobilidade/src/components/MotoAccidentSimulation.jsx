@@ -2,6 +2,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import Matter from 'matter-js';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import motoAmarela from '../assets/moto_amarela.png';
+import motoAzul from '../assets/moto_azul.png';
+import motoLaranja from '../assets/moto_laranja.png';
+import motoRed from '../assets/moto_red.png';
+import motoVerde from '../assets/moto_verde.png';
+
+const MOTO_TEXTURES = [motoAmarela, motoAzul, motoLaranja, motoRed, motoVerde];
+
 const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
     const sceneRef = useRef(null);
     const engineRef = useRef(null);
@@ -26,7 +34,7 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
     const RAMP_START_DEATHS = 100;
     const BASE_SPEED = 50;
     const MIN_SPAWN_DELAY = 10;
-    const motoTexture = "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f3cd.png";
+    // const motoTexture = "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f3cd.png";
 
     // Text Sections
     const rawSections = Array.isArray(content) ? content : (content ? content.split(/\n\s*\n/) : []);
@@ -82,33 +90,68 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
         renderRef.current.canvas.width = w;
     };
 
+    // Pre-load textures to get dimensions
+    const textureInfosRef = useRef([]);
+
+    useEffect(() => {
+        const loadTextures = () => {
+            MOTO_TEXTURES.forEach(src => {
+                const img = new Image();
+                img.src = src;
+                img.onload = () => {
+                    textureInfosRef.current.push({
+                        src,
+                        width: img.naturalWidth,
+                        height: img.naturalHeight,
+                        ratio: img.naturalWidth / img.naturalHeight
+                    });
+                };
+            });
+        };
+        loadTextures();
+    }, []);
+
     const spawnMoto = () => {
         if (spawnedPeopleRef.current >= TARGET_PESSOAS || !sceneRef.current || !engineRef.current || !renderRef.current) return;
+        // Wait for at least one texture to load
+        if (textureInfosRef.current.length === 0) return;
 
         const w = sceneRef.current.clientWidth;
         const h = renderRef.current.options.height;
-        const boxW = 30;
-        const boxH = 20;
+
+        // Pick random texture info
+        const texInfo = textureInfosRef.current[Math.floor(Math.random() * textureInfosRef.current.length)];
+
+        // Fixed height, calculated width based on aspect ratio
+        const boxH = 25; // Slightly larger base size
+        const boxW = boxH * texInfo.ratio;
+
+        // Ensure reasonable limits
+        const clampedW = Math.max(15, Math.min(boxW, 60));
 
         const remaining = TARGET_PESSOAS - spawnedPeopleRef.current;
         let passageiros = (remaining === 1) ? 1 : (Math.random() < 0.5 ? 1 : 2);
 
         spawnedPeopleRef.current += passageiros;
 
-        const x = -boxW;
+        const x = -clampedW * 2; // Spawn off-screen left
         const y = h - boxH / 2 - 2;
 
-        const spriteScaleFactor = 1.2;
-        const spriteScaleX = (boxW / 72) * spriteScaleFactor;
-        const spriteScaleY = (boxH / 72) * spriteScaleFactor;
+        // Scale sprite to match the physics body size
+        // Sprite scale = (Target Size in World Units) / (Image Size in Pixels)
+        // We add a small scale factor to make the image slightly larger than the hitbox for better visuals
+        const spriteScaleFactor = 1.3;
+        const spriteScaleX = (clampedW / texInfo.width) * spriteScaleFactor;
+        const spriteScaleY = (boxH / texInfo.height) * spriteScaleFactor;
 
-        const moto = Matter.Bodies.rectangle(x, y, boxW, boxH, {
-            restitution: 0.6,
+        const moto = Matter.Bodies.rectangle(x, y, clampedW, boxH, {
+            restitution: 0.5, // Reduced bounciness
             friction: 0.3,
             frictionAir: 0.02,
+            angle: 0, // Keep them upright initially
             render: {
                 sprite: {
-                    texture: motoTexture,
+                    texture: texInfo.src,
                     xScale: spriteScaleX,
                     yScale: spriteScaleY,
                 },
@@ -123,7 +166,7 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
 
         Matter.Body.setVelocity(moto, {
             x: getCurrentSpeed(),
-            y: 0,
+            y: (Math.random() - 0.5) * 2, // Slight vertical variation
         });
     };
 
