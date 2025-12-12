@@ -6,6 +6,20 @@ import { narrativeData } from './narrativeData';
 import { theme } from './theme';
 import { componentRegistry } from './componentRegistry';
 
+// Dynamic Asset Loading
+const assets = import.meta.glob('./assets/*.{png,jpg,jpeg,svg}', { eager: true });
+
+// Helper to find asset by loose path matching
+const findAsset = (path) => {
+    if (!path) return null;
+    // Extract basename (e.g., "calendario.png" from "foo/bar/calendario.png")
+    const basename = path.split(/[/\\]/).pop();
+
+    // Look for a key in assets that ends with this basename
+    const foundKey = Object.keys(assets).find(key => key.endsWith(basename));
+    return foundKey ? assets[foundKey].default : null;
+};
+
 // Simple markdown formatter
 const formatText = (text) => {
     if (!text) return null;
@@ -86,7 +100,7 @@ const ProseText = ({ item, forwardRef }) => {
     });
 
     // Fade in blur acts as "spotlight" on the text
-    const blurOpacity = useTransform(scrollYProgress, [0, 0.25, 0.75, 1], [0, 1, 1, 0]);
+    const blurOpacity = useTransform(scrollYProgress, [0.2, 0.3, 0.7, 0.8], [0, 1, 1, 0]);
 
     // Split combined text items into separate paragraphs
     const paragraphs = item.text.split(/\n\s*\n/);
@@ -303,6 +317,20 @@ const Content = ({ onChapterChange }) => {
     // Control the Fade Out of the White Background
     const overlay1Opacity = useTransform(narrativeProgress, [0, 1], [1, 0]);
 
+    // Drive map label opacity from scroll: labels are invisible at title end (narrativeProgress=0)
+    // and fully visible by the first card (narrativeProgress=0.06)
+    const labelsOpacity = useTransform(narrativeProgress, [0, 0.02, 0.06, 1], [0, 1, 1, 1]);
+
+    useEffect(() => {
+        const unsubscribe = labelsOpacity.on('change', (v) => {
+            if (window.setLabelsOpacity) {
+                const clamped = Math.max(0, Math.min(1, v));
+                window.setLabelsOpacity(clamped);
+            }
+        });
+        return () => unsubscribe();
+    }, [labelsOpacity]);
+
     // State for dynamic subway stops
     const [stops, setStops] = useState({
         blue: ['line-start-blue'],
@@ -389,6 +417,33 @@ const Content = ({ onChapterChange }) => {
                                 item={item}
                                 forwardRef={isBodyStart ? RMRRef : null}
                             />
+                        );
+                    }
+
+                    if (item.type === 'image') {
+                        const imageSrc = findAsset(item.src);
+                        if (!imageSrc) return null; // Or render a placeholder/error
+
+                        return (
+                            <div key={item.id} className="section image-block" style={{
+                                width: '100%',
+                                maxWidth: '800px', // Constrain width
+                                margin: '4rem auto',
+                                pointerEvents: 'none', // Images usually decorative nearby text
+                                zIndex: 1,
+                                textAlign: 'center'
+                            }}>
+                                <img
+                                    src={imageSrc}
+                                    alt="Narrative illustration"
+                                    style={{
+                                        maxWidth: '100%',
+                                        height: 'auto',
+                                        borderRadius: '8px', // Optional styling
+                                        boxShadow: '0 4px 20px rgba(0,0,0,0.3)' // Optional styling
+                                    }}
+                                />
+                            </div>
                         );
                     }
 

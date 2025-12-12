@@ -100,7 +100,7 @@ function App() {
   const part7Buffered = useMemo(() => {
     return turf.buffer(part7Data, 0.005, { units: 'kilometers' });
   }, []);
-
+  
   useEffect(() => {
     mapboxgl.accessToken = 'pk.eyJ1IjoiZGpjbzIxIiwiYSI6ImNtaXA3cDBlejBhaW0zZG9sbXZpOHFhYnQifQ.Bo43glKkuVwj310Z-L58oQ'
 
@@ -346,26 +346,25 @@ function App() {
         }
       }, labelLayerId);
 
-      // Initialize Flashlight Effect Layers (From Remote)
-      const layersToEffect = ['poi-label', 'transit-label', 'road-label', 'road-number-shield', 'road-exit-shield'];
-      layersToEffect.forEach(layerId => {
+      // Initialize label layers to opacity 0 (they will be revealed by scroll-driven animation in Content.jsx)
+      const labelLayerIds = ['poi-label', 'transit-label', 'road-label-simple', 'road-label', 'settlement-subdivision-label'];
+      labelLayerIds.forEach(layerId => {
         if (mapRef.current.getLayer(layerId)) {
-          mapRef.current.setPaintProperty(layerId, 'text-opacity', [
-            'case',
-            ['boolean', ['feature-state', 'hover'], false],
-            1,
-            0
-          ]);
-          mapRef.current.setPaintProperty(layerId, 'icon-opacity', [
-            'case',
-            ['boolean', ['feature-state', 'hover'], false],
-            1,
-            0
-          ]);
-          mapRef.current.setPaintProperty(layerId, 'text-opacity-transition', { duration: 300, delay: 0 });
-          mapRef.current.setPaintProperty(layerId, 'icon-opacity-transition', { duration: 300, delay: 0 });
+          mapRef.current.setPaintProperty(layerId, 'text-opacity', 0);
+          mapRef.current.setPaintProperty(layerId, 'icon-opacity', 0);
         }
       });
+
+      // Expose API to control label opacity from scroll animations in Content.jsx
+      window.setLabelsOpacity = (opacity) => {
+        if (!mapRef.current) return;
+        labelLayerIds.forEach(layerId => {
+          if (mapRef.current.getLayer(layerId)) {
+            mapRef.current.setPaintProperty(layerId, 'text-opacity', opacity);
+            mapRef.current.setPaintProperty(layerId, 'icon-opacity', opacity);
+          }
+        });
+      };
 
       if (showAlarm) {
         const chapterKeys = Object.keys(chapters);
@@ -410,7 +409,6 @@ function App() {
   const [isInteractionBlocked, setInteractionBlocked] = useState(false);
   const isInteractionBlockedRef = useRef(false);
   const isDraggingRef = useRef(false);
-  const hoveredFeatures = useRef(new Set());
 
   useEffect(() => {
     isInteractionBlockedRef.current = isInteractionBlocked;
@@ -456,58 +454,7 @@ function App() {
     };
   }, []);
 
-  // Handle Flashlight Mouse Move
-  useEffect(() => {
-    if (!mapRef.current) return;
-    const map = mapRef.current;
 
-
-    const handleFlashlight = (e) => {
-      if (isInteractionBlockedRef.current) {
-        hoveredFeatures.current.forEach(f => {
-          map.setFeatureState({ source: f.source, sourceLayer: f.sourceLayer, id: f.id }, { hover: false });
-        });
-        hoveredFeatures.current.clear();
-        return;
-      }
-
-      const radius = 100; // Radius in pixels
-      const bbox = [
-        [e.point.x - radius, e.point.y - radius],
-        [e.point.x + radius, e.point.y + radius]
-      ];
-
-      const layersToQuery = ['poi-label', 'transit-label', 'road-label', 'road-number-shield', 'road-exit-shield'].filter(layer => map.getLayer(layer));
-      if (layersToQuery.length === 0) return;
-
-      const features = map.queryRenderedFeatures(bbox, { layers: layersToQuery });
-
-      const currentFeaturesMap = new Map();
-
-      features.forEach(f => {
-        if (f.id !== undefined) {
-          const key = `${f.source}|${f.sourceLayer}|${f.id}`;
-          currentFeaturesMap.set(key, { source: f.source, sourceLayer: f.sourceLayer, id: f.id });
-          map.setFeatureState({ source: f.source, sourceLayer: f.sourceLayer, id: f.id }, { hover: true });
-        }
-      });
-
-      // Remove old ones
-      hoveredFeatures.current.forEach((obj, key) => {
-        if (!currentFeaturesMap.has(key)) {
-          map.setFeatureState({ source: obj.source, sourceLayer: obj.sourceLayer, id: obj.id }, { hover: false });
-        }
-      });
-
-      hoveredFeatures.current = currentFeaturesMap;
-    };
-
-    map.on('mousemove', handleFlashlight);
-
-    return () => {
-      if (map) map.off('mousemove', handleFlashlight);
-    };
-  }, []);
 
   const handleChapterChange = useCallback((chapterName) => {
     if (showAlarm) return;
@@ -544,7 +491,7 @@ function App() {
         <div className={!showAlarm ? "content-container" : ""} style={{ position: 'relative', zIndex: 1, width: '100%', pointerEvents: 'none' }}>
           <div style={{ position: 'relative', width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             {/* Pass handleChapterChange to Content */}
-            {!showAlarm && <Content onChapterChange={handleChapterChange} />}
+            <Content onChapterChange={handleChapterChange} />
           </div>
         </div>
       </MapInteractionContext.Provider >
