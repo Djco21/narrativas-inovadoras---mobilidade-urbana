@@ -2,6 +2,7 @@ import React from 'react';
 import MotoAccidentSimulation from './components/MotoAccidentSimulation';
 import Title from './components/Title';
 import Prologue from './components/Prologue';
+import Conclusion from './components/Conclusion';
 
 // Example component for testing
 const TestComponent = () => (
@@ -23,5 +24,6 @@ export const componentRegistry = {
     'moto-accident-simulation': MotoAccidentSimulation,
     'title': Title,
     'prequel': Prologue,
+    'conclusion': Conclusion,
     // Add future components here
 };

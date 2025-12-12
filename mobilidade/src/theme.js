@@ -12,7 +12,8 @@ export const theme = {
             italic: '#AAAAAA',
             cardBackground: '#222222DD',
             cardText: '#FFFFFF',
-            cardBorder: 'transparent'
+            cardBorder: 'transparent',
+            conclusionBold: '#FFFFFF' // Special bold color for conclusion (Credits, etc.)
         },
         transport: {
             busLine: '#9d00ff',

@@ -472,7 +472,7 @@ const Content = ({ onChapterChange }) => {
                                 margin: item.componentName === 'moto-accident-simulation' ? '0' : '5vh auto',
                                 padding: '0',
                                 pointerEvents: isTitleComponent ? 'none' : 'auto',
-                                zIndex: 2
+                                zIndex: 'auto'
                             }}>
                                 <ComponentIdx
                                     index={index}
@@ -497,20 +497,7 @@ const Content = ({ onChapterChange }) => {
 
 
                 {/* Conclusion / Credits Section (Only visible when unlocked) */}
-                {renderLimit === Infinity && (
-                    <div className="section conclusion" style={{
-                        minHeight: '50vh',
-                        width: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        marginTop: '4rem'
-                    }}>
-                        {/* Placeholder for Credits/Socials */}
-                        <div style={{ height: '100px' }} />
-                    </div>
-                )}
+                {/* Conclusion / Credits Section (Moved to Dynamic Component 'conclusion') */}
 
                 {/* FALLBACK REFS: Prevent framer-motion crashes if items are missing or hidden by renderLimit */}
                 <div

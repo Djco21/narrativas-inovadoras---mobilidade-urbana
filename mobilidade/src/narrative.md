@@ -80,3 +80,26 @@ Enquanto Mariana se equilibra entre filas, baldeações e improvisos diários pa
 
 [card: conclusao-dormir]
 [23:00] Amanhã, tudo recomeça. O despertador toca cedo, o metrô lota cedo, o trânsito trava cedo. E Mariana, como milhares de outras pessoas, levanta mesmo assim. Porque a vida insiste, as contas insistem, o diploma insiste. Ela fecha os olhos sabendo que, quando o dia nascer, estará de novo lá fora, tentando atravessar Recife e, quem sabe, sobreviver a ele.
+
+[component: conclusion]
+(
+**O Preço da Mobilidade**
+
+**Reportagem**
+Victor Amaral, George Lucas, Anna Luísa, Luísa Leal, João Dias, Filipe Martins
+
+**Redação**
+Victor Amaral
+
+**Revisão**
+Victor Amaral, Gustavo Santiago, Danilo Coutinho
+
+**Design**
+Gustavo Santiago
+
+**Desenvolvimento**
+Gustavo Santiago, Danilo Coutinho, Demetriu Gabriel, Dante, Weldon, Ricardo
+
+**Orientação**
+Gustavo Santiago, Victor Amaral, Demetriu Gabriel
+)
