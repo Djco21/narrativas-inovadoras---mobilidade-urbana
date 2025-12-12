@@ -15,7 +15,7 @@ export const theme = {
             cardBorder: 'transparent'
         },
         transport: {
-            busLine: '#ff8000',
+            busLine: '#9d00ff',
             metroLine: '#e70505',
             busLineBack: '#009000',
             lineLeft: '#003399',
