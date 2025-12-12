@@ -2,7 +2,42 @@ import React, { useRef, useEffect, useState } from 'react'
 import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 import SubwayLines from './SubwayLines';
 import InteractionBlocker from './InteractionBlocker';
-import { fetchNarrativeData } from './narrativeData';
+import { fetchNarrativeData, getStaticNarrative } from './narrativeData';
+
+// ... (other imports remain)
+
+// ... (NarrativeDisplay and other components remain)
+
+const Content = ({ onChapterChange, showAlarm }) => {
+    // State for narrative items - Initialize with Static Data (Stale-While-Revalidate)
+    const [narrativeItems, setNarrativeItems] = useState(() => getStaticNarrative().items);
+
+    // We start as "loaded" because we have the static data.
+    // The effect below will background-fetch the new data and update strictly if needed.
+    useEffect(() => {
+        fetchNarrativeData().then(data => {
+            // Optional: You could compare data here to avoid re-renders if identical,
+            // but React state updates are cheap enough for this size.
+            // A simple JSON.stringify check might save a render.
+            // if (JSON.stringify(data.items) !== JSON.stringify(narrativeItems)) ...
+
+            // For now, we just update. The user sees the upgrade "on the fly".
+            if (data.items && data.items.length > 0) {
+                setNarrativeItems(data.items);
+            }
+        });
+    }, []);
+
+    // Do not render Framer Motion components until Alarm is dismissed
+    if (showAlarm) return null;
+
+    return (
+        <NarrativeDisplay
+            onChapterChange={onChapterChange}
+            narrativeItems={narrativeItems}
+        />
+    );
+};
 import { theme } from './theme';
 import { componentRegistry } from './componentRegistry';
 
@@ -522,51 +557,6 @@ const NarrativeDisplay = ({ onChapterChange, narrativeItems }) => {
                 />
             </div>
         </>
-    );
-};
-
-const Content = ({ onChapterChange, showAlarm }) => {
-    // State for narrative items
-    const [narrativeItems, setNarrativeItems] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    // Load Data on Mount
-    useEffect(() => {
-        fetchNarrativeData().then(data => {
-            setNarrativeItems(data.items);
-            setIsLoading(false);
-        });
-    }, []);
-
-    // Do not render Framer Motion components until Alarm is dismissed
-    if (showAlarm) return null;
-
-    if (isLoading) {
-        return (
-            <div style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                zIndex: 9999,
-                backgroundColor: theme.colors.background.prologue,
-                color: 'white',
-                fontSize: '1.5rem'
-            }}>
-                Carregando narrativa...
-            </div>
-        );
-    }
-
-    return (
-        <NarrativeDisplay
-            onChapterChange={onChapterChange}
-            narrativeItems={narrativeItems}
-        />
     );
 };
 

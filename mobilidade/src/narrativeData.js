@@ -1,5 +1,26 @@
 import { parseNarrative } from './narrativeParser';
 import { getNarrativeMappings } from './storyConfig';
+import localNarrative from './narrative.md?raw';
+
+// Common Processor
+const processNarrative = (text) => {
+    const parsedItems = parseNarrative(text);
+    const narrativeMappings = getNarrativeMappings();
+
+    return {
+        items: parsedItems.map(item => {
+            if (item.type === 'card' && narrativeMappings[item.id]) {
+                item.triggerAfter = narrativeMappings[item.id];
+            }
+            return item;
+        })
+    };
+};
+
+// Static / Cache Loader
+export function getStaticNarrative() {
+    return processNarrative(localNarrative);
+}
 
 // Fetch and Parse
 export async function fetchNarrativeData() {
@@ -10,20 +31,11 @@ export async function fetchNarrativeData() {
             throw new Error(`Failed to fetch narrative: ${response.statusText}`);
         }
         const text = await response.text();
-        const parsedItems = parseNarrative(text);
-        const narrativeMappings = getNarrativeMappings();
-
-        return {
-            items: parsedItems.map(item => {
-                if (item.type === 'card' && narrativeMappings[item.id]) {
-                    item.triggerAfter = narrativeMappings[item.id];
-                }
-                return item;
-            })
-        };
+        return processNarrative(text);
     } catch (error) {
         console.error("Error loading narrative:", error);
-        return { items: [] }; // Return empty or handle error gracefully
+        // Fallback to static on error
+        return getStaticNarrative();
     }
 }
 
