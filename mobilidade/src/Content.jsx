@@ -471,7 +471,7 @@ const Content = ({ onChapterChange }) => {
                                 maxWidth: item.componentName === 'moto-accident-simulation' ? '100%' : '1200px',
                                 margin: item.componentName === 'moto-accident-simulation' ? '0' : '5vh auto',
                                 padding: '0',
-                                pointerEvents: 'auto',
+                                pointerEvents: isTitleComponent ? 'none' : 'auto',
                                 zIndex: 2
                             }}>
                                 <ComponentIdx
