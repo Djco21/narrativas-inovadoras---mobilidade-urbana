@@ -12,7 +12,7 @@ const Title = ({ content, forwardRef }) => {
                 className="section"
                 style={{ zIndex: 1, position: 'relative', minWidth: '80vw', textAlign: 'center' }}
             >
-                <h1 ref={forwardRef} style={{ fontSize: '4rem', whiteSpace: 'nowrap', color: theme.colors.narrative.title }}>{text}</h1>
+                <h1 ref={forwardRef} style={{ fontSize: '4rem', whiteSpace: 'nowrap', color: theme.colors.narrative.title, pointerEvents: 'auto' }}>{text}</h1>
 
                 {/* Diverging Start Points (Invisible) */}
                 <div id="line-start-blue" style={{ position: 'absolute', top: '15vh', left: '35%', height: '10px', width: '10px' }} />
