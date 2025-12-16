@@ -31,4 +31,13 @@ export default defineConfig({
       }
     }
   ],
+  preview: {
+    proxy: {
+      '/api/narrative': {
+        target: 'https://docs.google.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/narrative/, '/document/d/1c8DHYAHgr9byHNzQWteyTwplLbhnLIGY00c22EQU87k/export?format=md&tab=t.0')
+      }
+    }
+  }
 })
