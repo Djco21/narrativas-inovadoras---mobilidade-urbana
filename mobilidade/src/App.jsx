@@ -229,7 +229,6 @@ function App() {
           'type': 'fill-extrusion',
           'minzoom': 15,
           'paint': {
-            'fill-extrusion-opacity': 1,
             'fill-extrusion-color': theme.colors.transport.buildings,
             'fill-extrusion-height': [
               'interpolate',
