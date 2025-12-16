@@ -3,193 +3,188 @@ export function parseNarrative(text) {
 
     const lines = text.split(/\r?\n/);
     const items = [];
+
+    // State
+    let currentItem = null; // { type, componentName?, content: [] }
     let buffer = [];
-    let pendingCard = null;
 
-    const flushText = () => {
+    // Helper: Flush buffer as a content paragraph (argument)
+    const flushBuffer = () => {
         if (buffer.length === 0) return;
-        const fullText = buffer.join('\n').trim();
-        if (!fullText) {
-            buffer = [];
-            return;
-        }
-
-        if (pendingCard) {
-            let content = fullText;
-            let title = null;
-            const titleMatch = content.match(/^\[(\d{1,2}:\d{2})\]/);
-            if (titleMatch) {
-                title = titleMatch[1];
-                content = content.replace(/^\[(\d{1,2}:\d{2})\]\s*/, '');
+        const paragraph = buffer.join('\n').trim();
+        if (paragraph && currentItem) {
+            currentItem.content.push(paragraph);
+        } else if (paragraph) {
+            // Text outside of any component?
+            // User implies "add a text tag".
+            // If we find text before any tag, maybe treat as 'text' type automatically? or dropped?
+            // To be safe, let's auto-create a text item if none exists, or just warn.
+            // Let's create a generic text item.
+            if (!currentItem) {
+                currentItem = {
+                    type: 'text',
+                    id: `text-${Math.random().toString(36).substr(2, 9)}`,
+                    content: [paragraph]
+                };
+                items.push(currentItem);
+                // Note: we pushed it, but we keep currentItem active to append more paras
+                // actually, if we hit a new tag, we switch currentItem.
             }
-
-            items.push({
-                ...pendingCard,
-                title,
-                text: content
-            });
-            pendingCard = null;
-        } else {
-            items.push({
-                type: 'text',
-                id: `text-${Math.random().toString(36).substr(2, 9)}`,
-                text: fullText
-            });
         }
         buffer = [];
     };
 
-    let i = 0;
-    while (i < lines.length) {
-        let line = lines[i];
-        const trimmed = line.trim();
+    // Helper: Finalize current item and push to items list
+    // (Actually we push reference immediately or at end? Better at end of logic block)
+    // Strategy: We keep currentItem in valid state. When switching, we don't need to "push" if we pushed it on creation.
+    // Let's use "Pending" strategy: accumulate, then push when switching.
+    const finalizeItem = () => {
+        flushBuffer();
+        if (currentItem) {
+            // Post-processing for specific types
+            if (currentItem.type === 'card_dsl') {
+                // Map content to card schema: { type: 'card', title?, text }
+                // User said: "card component that takes an argument list with a single element"
+                // But existing cards have Time + Text.
+                // Let's assume:
+                // Arg 1: Time (title)
+                // Arg 2: Text (text) OR Arg 1 contains both?
+                // Let's assume Arg 1 = Time, Arg 2... = Text.
+                // Or if only 1 arg, maybe just Text?
+                // Let's look at usage: "card: card-camaragibe \n [05:00] \n Text"
+                // [05:00] is typically a separate para in MD if written on new line.
 
-        // 0. BLANK LINE CHECK
-        if (!trimmed) {
-            // If we are inside a card capture, a double newline (blank line) ends the card
-            if (pendingCard && buffer.length > 0) {
-                flushText();
-            } else {
-                buffer.push(line);
-            }
-            i++;
-            continue;
-        }
+                const timeStr = currentItem.content.length > 0 ? currentItem.content[0] : '';
+                // Check if first arg looks like time [00:00]
+                const timeMatch = timeStr.match(/^\\?\[?(\d{1,2}:\d{2})\\?\]?/);
 
-        // 1. COMPONENT
-        // Matches [component:name] or [component:name](...
-        const compMatch = trimmed.match(/^\[component:\s*([\w-]+)\](.*)/i);
-        if (compMatch) {
-            flushText();
-            const componentName = compMatch[1];
-            let remainder = compMatch[2] ? compMatch[2].trim() : '';
+                let title = null;
+                let bodyText = '';
 
-            let contentLines = [];
-            let argsFound = false;
+                if (timeMatch) {
+                    title = timeMatch[1];
+                    // Strip the timestamp from the first line to get potential lead-in text
+                    const firstLineRemainder = timeStr.replace(timeMatch[0], '').trim();
 
-            // CASE A: Starts on same line?
-            if (remainder.startsWith('(')) {
-                argsFound = true;
-                if (remainder.endsWith(')') && remainder.length > 1) {
-                    // Single line case: [comp](args)
-                    // Be careful not to match [comp](start ... )end
-                    // For now assume if it ends with ) on same line, it's single line unless it looks clearly multi-line (not supported mixed yet)
-                    // We'll strip start and end and take it.
-                    contentLines.push(remainder.slice(1, -1));
-                    i++;
-                } else {
-                    // Multi-line starting here: [comp](
-                    // Push content after (
-                    let startContent = remainder.substring(1);
-                    if (startContent) contentLines.push(startContent);
-
-                    i++;
-                    // Capture until )
-                    while (i < lines.length) {
-                        const l = lines[i];
-                        if (l.trim() === ')') {
-                            i++;
-                            break;
-                        }
-                        contentLines.push(l);
-                        i++;
-                    }
-                }
-            }
-            // CASE B: Starts on next line?
-            else if (!remainder) {
-                // Peek
-                let nextI = i + 1;
-                while (nextI < lines.length && !lines[nextI].trim()) {
-                    nextI++;
-                }
-
-                if (nextI < lines.length && lines[nextI].trim().startsWith('(')) {
-                    // Found it
-                    i = nextI;
-                    let currentLine = lines[i].trim();
-                    argsFound = true;
-
-                    // If exactly "(", just consume
-                    if (currentLine === '(') {
-                        i++;
-                        while (i < lines.length) {
-                            const l = lines[i];
-                            if (l.trim() === ')') {
-                                i++;
-                                break;
-                            }
-                            contentLines.push(l);
-                            i++;
-                        }
+                    const restOfBody = currentItem.content.slice(1);
+                    if (firstLineRemainder) {
+                        bodyText = [firstLineRemainder, ...restOfBody].join('\n\n');
                     } else {
-                        // "( content"
-                        // Handle like Case A
-                        let startContent = lines[i].trim().substring(1); // naive trim then substring
-                        // If we want to preserve indentation of content, we should use lines[i] but find index of (
-                        // Simplification: assume user writes "(" on its own line usually, or "(text"
-                        if (currentLine.endsWith(')')) {
-                            contentLines.push(currentLine.slice(1, -1));
-                            i++;
-                        } else {
-                            if (startContent) contentLines.push(startContent);
-                            i++;
-                            while (i < lines.length) {
-                                const l = lines[i];
-                                if (l.trim() === ')') {
-                                    i++;
-                                    break;
-                                }
-                                contentLines.push(l);
-                                i++;
-                            }
-                        }
+                        bodyText = restOfBody.join('\n\n');
                     }
                 } else {
-                    // No args
-                    i++;
+                    bodyText = currentItem.content.join('\n\n');
                 }
+
+                // If it's pure text, treat as body. Use componentName as ID if provided in tag?
+                // Tag: ### card: id
+                // name = "card: id" -> logic below will split ID.
+
+                items.push({
+                    type: 'card',
+                    id: currentItem.id || `card-${Math.random().toString(36).substr(2, 9)}`,
+                    align: 'right', // Will be fixed by alternation pass
+                    title: title,
+                    text: bodyText
+                });
+            }
+            else if (currentItem.type === 'text_dsl') {
+                // ### text
+                items.push({
+                    type: 'text',
+                    id: `text-${Math.random().toString(36).substr(2, 9)}`,
+                    // Pass raw content array (paragraphs/arguments) directly
+                    content: currentItem.content
+                });
+            }
+            else if (currentItem.type === 'component') {
+                // ### name
+                items.push({
+                    type: 'component',
+                    id: `comp-${Math.random().toString(36).substr(2, 9)}`,
+                    componentName: currentItem.componentName,
+                    content: currentItem.content // List of strings
+                });
+            }
+            // If type was 'text' (implicit), it's already pushed?
+            // Actually, implicit text strategy above used 'text' type.
+            // Let's unify.
+        }
+        currentItem = null;
+    };
+
+
+    for (let i = 0; i < lines.length; i++) {
+        let line = lines[i];
+        let trimmed = line.trim();
+
+        // 1. BLANK LINE -> Flush Paragraph
+        if (!trimmed) {
+            flushBuffer();
+            continue;
+        }
+
+        // 2. HEADER 3 (###) -> New Component
+        if (trimmed.startsWith('###')) {
+            finalizeItem(); // Close previous
+
+            // Format: "### Name" or "### Name: ID" or "### Name (Args)?" (Args removed per DSL)
+            // Just "### Name" where Name can encompass "card: id" possibly?
+            // "remove component: from the tag" -> "### prequel"
+            // "create card component..." -> "### card" 
+            // "reomove parenthesis entirely"
+
+            let rawName = trimmed.replace(/^###\s*/, '').trim();
+            // Check for ID separation "card: id"
+            // Or just generic "Name"
+
+            // Logic:
+            // if starts with "card" -> type=card_dsl
+            // if starts with "text" -> type=text_dsl
+            // else -> type=component
+
+            // Handling "card: my-id"
+            let type = 'component';
+            let componentName = rawName;
+            let id = null;
+
+            // Check specific types
+            if (rawName.toLowerCase().startsWith('card')) {
+                type = 'card_dsl';
+                // extract ID if "card: id"
+                const parts = rawName.split(':');
+                if (parts.length > 1) {
+                    id = parts[1].trim();
+                }
+            } else if (rawName.toLowerCase().startsWith('text')) {
+                type = 'text_dsl';
             } else {
-                // Remainder exists but not starting with ( -> garbage or ignored
-                i++;
+                componentName = rawName.split(':')[0].trim(); // Remove : if present?
+                // User said "remove component: from the tag".
+                // Did they mean "### component:name" becomes "### name"? Yes.
+                // But some components might use arguments in name? No, paragraphs are args.
             }
 
-            // Process Content
-            let finalContent = [];
-            if (argsFound) {
-                const fullStr = contentLines.join('\n');
-                // Split by double newline to match "each paragraph is a section"
-                finalContent = fullStr.split(/\n\s*\n/).filter(s => s.trim());
-            }
-
-            items.push({
-                type: 'component',
-                id: `component-${Math.random().toString(36).substr(2, 9)}`,
-                componentName: componentName,
-                content: finalContent
-            });
-            continue;
-        }
-
-        // 2. CARD
-        const cardMatch = trimmed.match(/^\[card(?::\s*([\w-]+))?\]/i);
-        if (cardMatch) {
-            flushText();
-            let specifiedId = cardMatch[1];
-            const id = specifiedId || `generated-card-${Math.random().toString(36).substr(2, 9)}`;
-
-            pendingCard = {
-                type: 'card',
-                id: id,
-                align: 'right'
+            currentItem = {
+                type,
+                componentName,
+                id,
+                content: []
             };
-            i++;
             continue;
         }
 
-        // 3. TITLE/HEADER
-        if (trimmed.startsWith('#')) {
-            flushText();
+        // 3. HEADER 1/2 (Title) -> Treat as Standard Title Item (Not Component DSL)
+        // Rule: If we are inside a generic component (not text/card), we consume headers as args.
+        // This allows logic like Prologue parsing its own ## Title.
+        if (trimmed.startsWith('#') && !trimmed.startsWith('###')) {
+            if (currentItem && currentItem.type === 'component') {
+                // Consume as content content
+                buffer.push(line);
+                continue;
+            }
+
+            finalizeItem();
             const level = trimmed.startsWith('##') ? 2 : 1;
             items.push({
                 type: 'title',
@@ -197,32 +192,30 @@ export function parseNarrative(text) {
                 id: `title-${Math.random().toString(36).substr(2, 9)}`,
                 text: trimmed.replace(/^#+\s*/, '')
             });
-            i++;
             continue;
         }
 
-        // 4. IMAGE
-        // Matches @[path]
-        const imageMatch = trimmed.match(/^@\[(.*?)\]/);
+        // 4. IMAGE (Legacy @[path]) -> Keep support? 
+        // User didn't imply removing images.
+        const imageMatch = trimmed.match(/^@\\?\[(.*?)\\?\]/);
         if (imageMatch) {
-            flushText();
+            finalizeItem(); // Image is standalone item usually?
+            // Or should image be content of text? existing parser made it standalone.
             items.push({
                 type: 'image',
                 id: `image-${Math.random().toString(36).substr(2, 9)}`,
                 src: imageMatch[1].trim()
             });
-            i++;
             continue;
         }
 
-        // 5. TEXT
+        // 5. TEXT CONTENT
         buffer.push(line);
-        i++;
     }
 
-    flushText();
+    finalizeItem(); // Flush last
 
-    // Alternate Card Alignment
+    // Post-Processing: Card Alignment
     let cardCount = 0;
     items.forEach(item => {
         if (item.type === 'card') {
