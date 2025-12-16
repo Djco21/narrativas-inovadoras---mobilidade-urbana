@@ -29,7 +29,8 @@ const Content = ({ onChapterChange, showAlarm }) => {
     }, []);
 
     // Do not render Framer Motion components until Alarm is dismissed
-    if (showAlarm) return null;
+    // REMOVED: if (showAlarm) return null; 
+    // We want content (especially Prologue) to render immediately over the map.
 
     return (
         <NarrativeDisplay
@@ -136,8 +137,11 @@ const ProseText = ({ item, forwardRef }) => {
     // Fade in blur acts as "spotlight" on the text
     const blurOpacity = useTransform(scrollYProgress, [0.2, 0.3, 0.7, 0.8], [0, 1, 1, 0]);
 
-    // Split combined text items into separate paragraphs
-    const paragraphs = item.text.split(/\n\s*\n/);
+    // Use item.content (array) if available, otherwise fallback to splitting item.text
+    // This supports the new "Argument List" DSL while maintaining backward compatibility if needed
+    const paragraphs = Array.isArray(item.content)
+        ? item.content
+        : (item.text ? item.text.split(/\n\s*\n/) : []);
 
     return (
         <>
@@ -406,7 +410,7 @@ const NarrativeDisplay = ({ onChapterChange, narrativeItems }) => {
                     backgroundColor: bgOverlayColor, // Black -> White
                     opacity: overlay1Opacity, // Fades out to reveal Map (and any local blurs)
                     pointerEvents: 'none',
-                    zIndex: 0
+                    zIndex: 1
                 }}
             />
 
@@ -501,7 +505,7 @@ const NarrativeDisplay = ({ onChapterChange, narrativeItems }) => {
                         }
 
                         return (
-                            <div key={item.uniqueKey || item.id} className="section" style={{
+                            <div key={`${item.id}-${index}`} className="section" style={{
                                 width: '100%',
                                 maxWidth: item.componentName === 'moto-accident-simulation' ? '100%' : '1200px',
                                 margin: item.componentName === 'moto-accident-simulation' ? '0' : '5vh auto',

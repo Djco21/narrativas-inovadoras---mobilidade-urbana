@@ -13,6 +13,7 @@ const Prologue = ({ content, forwardRef }) => {
         // Content might be array of strings (lines/paragraphs)
         const lines = Array.isArray(content) ? content.flatMap(c => c.split('\n')) : content.split('\n');
         lines.forEach(line => {
+            // Match #, ##, ###, or escaped variants \#, \#\#, \#\#\#
             if (line.trim().startsWith('##')) {
                 title = line.replace(/^##+\s*/, '').trim();
             } else if (line.trim()) {
