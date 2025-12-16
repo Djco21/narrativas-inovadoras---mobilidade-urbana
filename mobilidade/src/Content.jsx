@@ -336,16 +336,15 @@ const NarrativeCard = ({ card, index, onChapterChange, forwardRef }) => {
 const NarrativeDisplay = ({ onChapterChange, narrativeItems }) => {
     // Dynamic Background State
     // Scroll Interpolation Logic for Prologue -> Title (Black -> White)
-    const titleZoneRef = useRef(null);
+    const RMRRef = useRef(null);
     const { scrollYProgress: titleProgress } = useScroll({
-        target: titleZoneRef,
+        target: RMRRef,
         offset: ["start end", "center center"] // Starts when top of Title hits bottom of Viewport
     });
 
     const bgOverlayColor = useTransform(titleProgress, [0, 1], [theme.colors.background.prologue, theme.colors.background.title]);
 
     // Scroll Interpolation Logic for Title -> Narrative (White -> Transparent)
-    const RMRRef = useRef(null);
     const { scrollYProgress: narrativeProgress } = useScroll({
         target: RMRRef,
         offset: ["start center", "end center"] // Starts when top of Narrative hits bottom
@@ -501,7 +500,8 @@ const NarrativeDisplay = ({ onChapterChange, narrativeItems }) => {
                         if (isBodyStart) {
                             assignedRef = RMRRef;
                         } else if (isTitleComponent) {
-                            assignedRef = titleZoneRef;
+                            // Unified Ref: Both White->Transparent (BodyStart) and Black->White (Title) use the same ref
+                            assignedRef = RMRRef;
                         }
 
                         return (
