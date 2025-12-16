@@ -22,4 +22,10 @@ dist-ssr
 *.ntvs*
 *.njsproj
 *.sln
+*.sln
 *.sw?
+
+# Debug Scripts
+scripts/debug-*.js
+scripts/inspect-text.js
+scripts/verify-raw-header.js
