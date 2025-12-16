@@ -29,3 +29,4 @@ dist-ssr
 scripts/debug-*.js
 scripts/inspect-text.js
 scripts/verify-raw-header.js
+scripts/verify-doc-tab.js
