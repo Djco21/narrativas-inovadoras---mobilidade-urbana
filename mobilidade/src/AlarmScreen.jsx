@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
-export default function AlarmScreen({ onDismiss }) {
+export default function AlarmScreen({ onDismiss, onDismissStart }) {
   const [audioReady, setAudioReady] = useState(false);
   const [closing, setClosing] = useState(false);
+
+  const [showHint, setShowHint] = useState(false);
 
   useEffect(() => {
     const audio = new Audio(
@@ -48,6 +50,14 @@ export default function AlarmScreen({ onDismiss }) {
     playRadarSound();
   }, []);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowHint(true);
+    }, 3800);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   // Ensure AudioContext is closed when component unmounts
   useEffect(() => {
     return () => {
@@ -57,6 +67,7 @@ export default function AlarmScreen({ onDismiss }) {
 
   const handleDismiss = () => {
     setClosing(true);
+    if (onDismissStart) onDismissStart();
     setTimeout(() => onDismiss(), 900);
   };
 
@@ -103,17 +114,46 @@ export default function AlarmScreen({ onDismiss }) {
           ))}
         </div>
 
-        <motion.button
-          onClick={handleDismiss}
-          className="mt-16 px-12 py-5 bg-red-600 text-white rounded-full text-2xl font-semibold hover:bg-red-700 transition"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          Parar
-        </motion.button>
+        <div className="relative">
+          <motion.button
+            onClick={handleDismiss}
+            className="mt-16 px-12 py-5 bg-red-600 text-white rounded-full text-2xl font-semibold hover:bg-red-700 transition relative z-10"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            Parar
+          </motion.button>
+
+          {showHint && (
+            <motion.div
+              className="absolute left-full top-1/2 ml-6 text-white text-xl whitespace-nowrap"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{
+                opacity: 1,
+                x: [0, 10, 0],
+              }}
+              exit={{ opacity: 0 }}
+              transition={{
+                x: {
+                  duration: 1.5,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                  ease: "easeInOut"
+                },
+                opacity: {
+                  duration: 0.5,
+                  ease: "easeInOut"
+                }
+              }}
+              style={{ top: 'calc(50% + 30px)', transform: 'translateY(-50%)' }}
+            >
+              ← pare o alarme para começar
+            </motion.div>
+          )}
+        </div>
       </div>
     </motion.div>
   );

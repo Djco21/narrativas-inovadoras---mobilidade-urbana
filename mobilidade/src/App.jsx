@@ -18,6 +18,7 @@ import { getChapters, routeTriggers } from './storyConfig';
 import AlarmScreen from './AlarmScreen';
 import Content from './Content';
 import { useRouteAnimation } from './useRouteAnimation';
+import CustomScrollbar from './components/CustomScrollbar';
 
 
 import DevCameraHUD from './DevCameraHUD';
@@ -53,10 +54,16 @@ function App() {
 
   // Control Alarm visibility
   const [showAlarm, setShowAlarm] = useState(() => {
+    // 1. Check Session Storage (Persist on F5, Clear on Close) - HIGHEST PRIORITY
+    const sessionAlarm = sessionStorage.getItem('narrative_alarm_dismissed');
+    if (sessionAlarm === 'true') return false;
+
+    // 2. URL Override
     const params = new URLSearchParams(window.location.search);
     const alarmParam = params.get('alarm');
     if (alarmParam !== null) return alarmParam === 'true';
-    // Default: False in Dev, True in Prod
+
+    // 3. Default: False in Dev, True in Prod
     return !import.meta.env.DEV;
   });
   const alarmVisibleRef = useRef(showAlarm);
@@ -72,9 +79,18 @@ function App() {
 
   const isTouringRef = useRef(true);
 
+  const [isAlarmClosing, setIsAlarmClosing] = useState(false);
+
+  // Function to handle alarm dismissal start (for immediate UI response)
+  const handleAlarmDismissStart = () => {
+    setIsAlarmClosing(true);
+  };
+
   // Function to handle alarm dismissal
   const handleAlarmDismiss = () => {
+    sessionStorage.setItem('narrative_alarm_dismissed', 'true');
     setShowAlarm(false);
+    setIsAlarmClosing(false); // Reset closing state
     if (mapRef.current) {
       mapRef.current.flyTo({
         ...chapters['est-camaragibe'],
@@ -498,7 +514,8 @@ function App() {
 
   return (
     <>
-      {showAlarm && <AlarmScreen onDismiss={handleAlarmDismiss} />}
+      <CustomScrollbar showAlarm={showAlarm} isVisible={!showAlarm || isAlarmClosing} />
+      {showAlarm && <AlarmScreen onDismiss={handleAlarmDismiss} onDismissStart={handleAlarmDismissStart} />}
 
       <MapInteractionContext.Provider value={{ isInteractionBlocked, setInteractionBlocked }}>
         {import.meta.env.DEV && <DevCameraHUD map={mapInstance} />}
