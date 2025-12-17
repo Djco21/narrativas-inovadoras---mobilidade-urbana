@@ -11,26 +11,6 @@ import motoVerde from '../assets/moto_verde.png';
 const MOTO_TEXTURES = [motoAmarela, motoAzul, motoLaranja, motoRed, motoVerde];
 
 const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
-    const sceneRef = useRef(null);
-    const engineRef = useRef(null);
-    const renderRef = useRef(null);
-    const runnerRef = useRef(null);
-
-    // Game State Refs
-    const floorRef = useRef(null);
-    const rightWallRef = useRef(null);
-    const spawnedPeopleRef = useRef(0);
-    const mortesRef = useRef(0);
-    const lastSpawnTimeRef = useRef(0);
-
-    // React State for UI
-    const [mortes, setMortes] = useState(0);
-    const [activeSectionIndex, setActiveSectionIndex] = useState(0);
-    const [isFinale, setIsFinale] = useState(false);
-
-    // Reset Trigger for restarting simulation
-    const [resetTrigger, setResetTrigger] = useState(0);
-
     // Constants
     const TARGET_PESSOAS = 693;
     const HALF_PESSOAS = TARGET_PESSOAS / 2;
@@ -41,6 +21,31 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
 
     // Text Sections
     const rawSections = Array.isArray(content) ? content : (content ? content.split(/\n\s*\n/) : []);
+
+    // Helper to read initial state
+    const getInitialCompleted = () => {
+        if (typeof sessionStorage === 'undefined') return false;
+        return sessionStorage.getItem('narrative_simulation_completed') === 'true';
+    };
+    const initialCompleted = getInitialCompleted();
+
+    const sceneRef = useRef(null);
+    const engineRef = useRef(null);
+    const renderRef = useRef(null);
+    const runnerRef = useRef(null);
+
+    // Game State Refs
+    const floorRef = useRef(null);
+    const rightWallRef = useRef(null);
+    const spawnedPeopleRef = useRef(initialCompleted ? TARGET_PESSOAS : 0);
+    const mortesRef = useRef(initialCompleted ? TARGET_PESSOAS : 0);
+    const lastSpawnTimeRef = useRef(0);
+
+    // React State for UI
+    const [mortes, setMortes] = useState(initialCompleted ? TARGET_PESSOAS : 0);
+    const [activeSectionIndex, setActiveSectionIndex] = useState(initialCompleted ? 100 : 0);
+    const [isFinale, setIsFinale] = useState(initialCompleted);
+    const [resetTrigger, setResetTrigger] = useState(0); // Added back
     const textSections = ['', ...rawSections];
 
     // --- Helper Functions ---
@@ -113,6 +118,13 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
         };
         loadTextures();
     }, []);
+
+    // Unlock scroll if initially completed
+    useEffect(() => {
+        if (initialCompleted && setRenderLimit) {
+            setRenderLimit(Infinity);
+        }
+    }, [initialCompleted, setRenderLimit]);
 
     const spawnMoto = () => {
         if (spawnedPeopleRef.current >= TARGET_PESSOAS || !sceneRef.current || !engineRef.current || !renderRef.current) return;
