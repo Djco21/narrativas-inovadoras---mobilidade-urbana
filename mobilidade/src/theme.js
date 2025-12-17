@@ -13,6 +13,8 @@ export const theme = {
             cardBackground: '#222222DD',
             cardText: '#FFFFFF',
             cardBorder: 'transparent',
+            backdrop: 'rgba(0, 0, 0, 0.2)', // Darken blur overlay
+            backdropFilter: 'blur(16px) grayscale(80%)', // Blur + Desaturate
             conclusionBold: '#FFFFFF' // Special bold color for conclusion (Credits, etc.)
         },
         transport: {

@@ -153,7 +153,8 @@ const ProseText = ({ item, forwardRef }) => {
                     left: 0,
                     width: '100%',
                     height: '100%',
-                    backdropFilter: 'blur(16px)',
+                    backdropFilter: theme.colors.narrative.backdropFilter,
+                    backgroundColor: theme.colors.narrative.backdrop,
                     opacity: blurOpacity,
                     pointerEvents: 'none',
                     zIndex: 0
@@ -174,7 +175,7 @@ const ProseText = ({ item, forwardRef }) => {
                         zIndex: 1,
                         pointerEvents: 'auto',
                         width: '100%',
-                        maxWidth: '1200px', // Full width as before
+                        maxWidth: '70ch', // Optimized for readability (approx 66 chars/line)
                         margin: '10vh auto',
                         padding: '2rem 10vw',
                         textAlign: 'justify',
