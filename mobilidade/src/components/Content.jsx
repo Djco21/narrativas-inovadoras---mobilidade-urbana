@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react'
 import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 import SubwayLines from './SubwayLines';
 import InteractionBlocker from './InteractionBlocker';
-import { fetchNarrativeData, getStaticNarrative } from './narrativeData';
+import { fetchNarrativeData, getStaticNarrative } from '../narrativeData';
 
 // ... (other imports remain)
 
@@ -39,11 +39,11 @@ const Content = ({ onChapterChange, showAlarm }) => {
         />
     );
 };
-import { theme } from './theme';
-import { componentRegistry } from './componentRegistry';
+import { theme } from '../theme';
+import { componentRegistry } from '../componentRegistry';
 
 // Dynamic Asset Loading
-const assets = import.meta.glob('./assets/*.{png,jpg,jpeg,svg}', { eager: true });
+const assets = import.meta.glob('../assets/*.{png,jpg,jpeg,svg}', { eager: true });
 
 // Helper to find asset by loose path matching
 const findAsset = (path) => {
@@ -175,7 +175,7 @@ const ProseText = ({ item, forwardRef }) => {
                         zIndex: 1,
                         pointerEvents: 'auto',
                         width: '100%',
-                        maxWidth: '70ch', // Optimized for readability (approx 66 chars/line)
+                        maxWidth: '80ch', // Optimized for readability (approx 66 chars/line)
                         margin: '10vh auto',
                         padding: '2rem 10vw',
                         textAlign: 'justify',

@@ -1,4 +1,4 @@
-import './App.css';
+import '../App.css';
 
 const GradientStrip = ({ height = '300px', top = '0', topEdge = 'soft', bottomEdge = 'soft', fadeHeight = '40px', style = {}, ...props }) => {
 

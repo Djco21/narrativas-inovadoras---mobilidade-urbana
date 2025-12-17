@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useMemo, useCallback } from 'react'
+import React, { useRef, useEffect, useState, useMemo, useCallback } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion';
 import * as turf from '@turf/turf';
 import mapboxgl from 'mapbox-gl'
@@ -6,22 +6,22 @@ import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css';
 
 import './App.css'
-import InteractionBlocker from './InteractionBlocker';
-import { MapInteractionContext } from './MapInteractionContext';
+import InteractionBlocker from './components/InteractionBlocker';
+import { MapInteractionContext } from './components/MapInteractionContext';
 import routeData from './assets/route.json';
 import extraRouteData from './assets/osm_elements_part5.json';
 import novohotelDerbyData from './assets/osm_elements_part6.json';
 import part7Data from './assets/osm_elements_part7.json';
 import part8Data from './assets/osm_elements_part8.json';
-import { preloadChapter } from './preloadUtils';
+
 import { getChapters, routeTriggers } from './storyConfig';
-import AlarmScreen from './AlarmScreen';
-import Content from './Content';
+import AlarmScreen from './components/AlarmScreen';
+import Content from './components/Content';
 import { useRouteAnimation } from './useRouteAnimation';
 import CustomScrollbar from './components/CustomScrollbar';
 
 
-import DevCameraHUD from './DevCameraHUD';
+import DevCameraHUD from './components/DevCameraHUD';
 import { theme } from './theme';
 
 
@@ -466,6 +466,50 @@ function App() {
 
 
 
+  // Background Tour for Cache Warming (Runs only while Alarm is active)
+  useEffect(() => {
+    if (!showAlarm || !isMapLoaded) return;
+
+    let isTouring = true;
+    const map = mapRef.current;
+
+    const runBackgroundTour = async () => {
+      const chapterKeys = Object.keys(chapters);
+
+      // We start from the end (reverse) or beginning? 
+      // User said "chapters futuros" (future chapters).
+      // Since narrative goes Start -> End, we should probably tour them all.
+      // Let's go sequentially.
+
+      for (const key of chapterKeys) {
+        if (!isTouring) break;
+
+        // Skip if we are already essentially there (optimization)
+        // But for preloading, we want to force it.
+
+        // Fast jump to trigger tile load
+        map.jumpTo({
+          ...chapters[key],
+          duration: 0 // Instant
+        });
+
+        // Wait for potential tile requests to initiate
+        // 500ms is usually enough for the engine to determine visible tiles and start fetching
+        await new Promise(resolve => setTimeout(resolve, 600));
+      }
+    };
+
+    // Run slightly delayed to let initial map load finish
+    const timer = setTimeout(() => {
+      runBackgroundTour();
+    }, 1000);
+
+    return () => {
+      isTouring = false;
+      clearTimeout(timer);
+    };
+  }, [showAlarm, isMapLoaded]);
+
   const handleChapterChange = useCallback((chapterName, cardId) => {
     if (showAlarm) return;
 
@@ -501,14 +545,7 @@ function App() {
         essential: true,
       });
 
-      // Preload next chapter
-      const chapterKeys = Object.keys(chapters);
-      const currentIndex = chapterKeys.indexOf(chapterName);
-      const nextChapterName = chapterKeys[currentIndex + 1];
-      if (nextChapterName) {
-        const nextChapter = chapters[nextChapterName];
-        preloadChapter(mapRef.current, nextChapter);
-      }
+      // Removed explicit preloading since we now rely on the Background Tour (or browser cache)
     }
   }, [showAlarm]);
 

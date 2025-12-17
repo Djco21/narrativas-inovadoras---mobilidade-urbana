@@ -58,7 +58,8 @@ Durante todo o caminho de volta, um pensamento martelava na cabeça: “Hoje eu 
 
 @\[calendario.png\]
 
-card:ida-ubermoto  
+### card:ida-ubermoto
+
 \[19:00\] Não há muito tempo para lamentações e reflexões, a segunda jornada não demora a chegar. A universitária já está saindo de casa rumo à faculdade, na Conde da Boa Vista. Antes de sair, abre o aplicativo e checa o preço da corrida de moto. Está “baratinho”. Uma viagem que normalmente demora 40 minutos magicamente vira 30 por cinco reais a mais.
 
 ### card:moto-acidentes
@@ -105,47 +106,39 @@ Enquanto Mariana se equilibra entre filas, baldeações e improvisos para ganhar
 
   
 
-**Reportagem**
-
+**Reportagem**  
 Victor Amaral, George Lucas, Anna Luísa, Luísa Leal, João Dias, Filipe Martins
 
   
 
-**Redação**
-
+**Redação**  
 Victor Amaral
 
   
 
-**Revisão**
-
+**Revisão**  
 Victor Amaral, Gustavo Santiago, Danilo Coutinho
 
   
 
-**Design**
-
+**Design**  
 Gustavo Santiago
 
   
 
-**Infografia**
-
+**Infografia**  
 Victor Amaral
 
   
 
-**Desenvolvimento**
-
+**Desenvolvimento**  
 Gustavo Santiago, Danilo Coutinho, Demetriu Gabriel, Dante Santana, Weldon Pereira, Ricardo Morato, João Antônio
 
   
 
-**Orientação**
-
+**Orientação**  
 Guilherme Ranoia, Nivan Ferreira, Rodrigo da Cunha  
   
 
-**Agradecimentos**
-
+**Agradecimentos**  
 Bárbara Mirelly, Maurício Oliveira, Silvia Maciel, Gustavo Barros  

@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import InteractionBlocker from '../InteractionBlocker';
+import InteractionBlocker from './InteractionBlocker';
 import { theme } from '../theme';
 
 const formatText = (text) => {

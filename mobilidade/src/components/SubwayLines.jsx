@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { theme } from './theme';
+import { theme } from '../theme';
 import { motion, useAnimation } from 'framer-motion';
 
 const SubwayLines = ({ lines = [] }) => {
