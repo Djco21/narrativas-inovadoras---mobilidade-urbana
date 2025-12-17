@@ -28,6 +28,9 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
     const [activeSectionIndex, setActiveSectionIndex] = useState(0);
     const [isFinale, setIsFinale] = useState(false);
 
+    // Reset Trigger for restarting simulation
+    const [resetTrigger, setResetTrigger] = useState(0);
+
     // Constants
     const TARGET_PESSOAS = 693;
     const HALF_PESSOAS = TARGET_PESSOAS / 2;
@@ -221,9 +224,13 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
         }
     }, [index, setRenderLimit]);
 
-    // 2. Handle Wheel at Bottom
+    // 2. Handle Wheel at Bottom (Optimized with RAF)
     useEffect(() => {
+        let rafId;
         const handleWheel = (e) => {
+            // Cancel any pending frame to avoid stacking
+            if (rafId) cancelAnimationFrame(rafId);
+
             // If already finished, ensure we are unlocked and ignore
             if (spawnedPeopleRef.current >= TARGET_PESSOAS) {
                 // Should be unlocked by timeout, but if user scrolls aggressively after fin, ensure it's open
@@ -238,20 +245,26 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
                 if (distToBottom < 50) {
                     e.preventDefault();
 
-                    const t = getRampProgress();
-                    const spawnedFirst = spawnMotoWithCooldown();
+                    // Schedule logic for next frame
+                    rafId = requestAnimationFrame(() => {
+                        const t = getRampProgress();
+                        const spawnedFirst = spawnMotoWithCooldown();
 
-                    if (spawnedFirst && spawnedPeopleRef.current < TARGET_PESSOAS) {
-                        if (Math.random() < t) {
-                            setTimeout(() => spawnMotoWithCooldown(), 120);
+                        if (spawnedFirst && spawnedPeopleRef.current < TARGET_PESSOAS) {
+                            if (Math.random() < t) {
+                                setTimeout(() => spawnMotoWithCooldown(), 120);
+                            }
                         }
-                    }
+                    });
                 }
             }
         };
 
         window.addEventListener('wheel', handleWheel, { passive: false });
-        return () => window.removeEventListener('wheel', handleWheel);
+        return () => {
+            window.removeEventListener('wheel', handleWheel);
+            if (rafId) cancelAnimationFrame(rafId);
+        };
     }, [setRenderLimit]);
 
 
@@ -302,12 +315,46 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
             Matter.World.clear(engine.world);
             Matter.Engine.clear(engine);
         };
-    }, []);
+    }, [resetTrigger]); // Re-run when resetTrigger changes
 
     const formatSimText = (text) => {
         if (!text) return null;
         let formatted = text.replace(/\*\*(.*?)\*\*/g, '<b style="color: #fff">$1</b>');
         return <span dangerouslySetInnerHTML={{ __html: formatted }} />;
+    };
+
+    const handleSkip = () => {
+        // Complete State
+        const finalDeaths = TARGET_PESSOAS;
+        sessionStorage.setItem('narrative_simulation_completed', 'true');
+
+        setMortes(finalDeaths);
+        setIsFinale(true);
+        setActiveSectionIndex(100); // Past end
+        setRenderLimit(Infinity); // Unlock scroll
+
+        // Update Refs
+        mortesRef.current = finalDeaths;
+        spawnedPeopleRef.current = finalDeaths;
+    };
+
+    const handleRestart = () => {
+        if (!engineRef.current) return;
+
+        // Reset State
+        sessionStorage.setItem('narrative_simulation_completed', 'false');
+        setMortes(0);
+        setIsFinale(false);
+        setActiveSectionIndex(0);
+        setRenderLimit(index); // Re-lock scroll
+
+        // Reset Refs
+        spawnedPeopleRef.current = 0;
+        mortesRef.current = 0;
+        lastSpawnTimeRef.current = 0;
+
+        // Trigger Re-Mount of Physics
+        setResetTrigger(prev => prev + 1);
     };
 
     // Gradually despawn motos when finale is reached
@@ -355,6 +402,37 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
                 pointerEvents: 'auto', // Re-enable pointer events for the simulation
                 boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
             }}>
+
+                {/* Control Buttons (Top Right) */}
+                <div style={{
+                    position: 'absolute',
+                    top: '1rem',
+                    right: '1rem',
+                    zIndex: 20,
+                    display: 'flex',
+                    gap: '8px'
+                }}>
+                    <ControlButton
+                        onClick={handleRestart}
+                        tooltip="Reiniciar Simulação"
+                        icon={
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polygon points="19 20 9 12 19 4 19 20" />
+                                <line x1="5" y1="19" x2="5" y2="5" />
+                            </svg>
+                        }
+                    />
+                    <ControlButton
+                        onClick={handleSkip}
+                        tooltip="Pular Simulação"
+                        icon={
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polygon points="5 4 15 12 5 20 5 4" />
+                                <line x1="19" y1="5" x2="19" y2="19" />
+                            </svg>
+                        }
+                    />
+                </div>
 
                 {/* Death Counter - Animated */}
                 <motion.div
@@ -457,3 +535,59 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
 };
 
 export default MotoAccidentSimulation;
+
+const ControlButton = ({ icon, tooltip, onClick }) => {
+    const [isHovered, setIsHovered] = useState(false);
+
+    return (
+        <div style={{ position: 'relative' }}>
+            <motion.button
+                onClick={onClick}
+                onMouseEnter={() => setIsHovered(true)}
+                onMouseLeave={() => setIsHovered(false)}
+                whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255,0.2)' }}
+                whileTap={{ scale: 0.95 }}
+                style={{
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    cursor: 'pointer',
+                    backdropFilter: 'blur(4px)'
+                }}
+            >
+                {icon}
+            </motion.button>
+            <AnimatePresence>
+                {isHovered && (
+                    <motion.div
+                        initial={{ opacity: 0, x: 10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 10 }}
+                        style={{
+                            position: 'absolute',
+                            top: '50%',
+                            right: '100%',
+                            marginRight: '8px',
+                            transform: 'translateY(-50%)',
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            color: 'white',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            fontSize: '0.8rem',
+                            whiteSpace: 'nowrap',
+                            pointerEvents: 'none'
+                        }}
+                    >
+                        {tooltip}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+};
