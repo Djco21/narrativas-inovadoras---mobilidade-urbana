@@ -368,6 +368,9 @@ const NarrativeDisplay = ({ onChapterChange, narrativeItems }) => {
         return () => unsubscribe();
     }, [labelsOpacity]);
 
+    // State for Dynamic Render Limiting (Scroll Blocking)
+    const [renderLimit, setRenderLimit] = useState(Infinity);
+
     // State for dynamic subway stops
     const [stops, setStops] = useState({
         blue: ['line-start-blue'],
@@ -391,10 +394,9 @@ const NarrativeDisplay = ({ onChapterChange, narrativeItems }) => {
             blue: blueStops,
             orange: orangeStops
         });
-    }, [narrativeItems]); // Run whenever items change (and initially loaded)
+    }, [narrativeItems, renderLimit]); // Run whenever items or visibility changes
 
-    // State for Dynamic Render Limiting (Scroll Blocking)
-    const [renderLimit, setRenderLimit] = useState(Infinity);
+
 
     // Scroll Hint Logic (appearing if user doesn't scroll for 10s)
     const [showScrollHint, setShowScrollHint] = useState(false);
