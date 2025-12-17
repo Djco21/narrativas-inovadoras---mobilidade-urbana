@@ -46,6 +46,8 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
     const [activeSectionIndex, setActiveSectionIndex] = useState(initialCompleted ? 100 : 0);
     const [isFinale, setIsFinale] = useState(initialCompleted);
     const [resetTrigger, setResetTrigger] = useState(0); // Added back
+    const [showSkipConfirm, setShowSkipConfirm] = useState(false);
+    const [barTransition, setBarTransition] = useState({ duration: 0 }); // Default instant
     const textSections = ['', ...rawSections];
 
     // --- Helper Functions ---
@@ -335,7 +337,14 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
         return <span dangerouslySetInnerHTML={{ __html: formatted }} />;
     };
 
-    const handleSkip = () => {
+    const handleSkipClick = () => {
+        setShowSkipConfirm(true);
+    };
+
+    const confirmSkip = () => {
+        setShowSkipConfirm(false);
+        setBarTransition({ type: 'spring', stiffness: 20, damping: 10, mass: 0.5 }); // Enable animation for big jump
+
         // Complete State
         const finalDeaths = TARGET_PESSOAS;
         sessionStorage.setItem('narrative_simulation_completed', 'true');
@@ -348,10 +357,19 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
         // Update Refs
         mortesRef.current = finalDeaths;
         spawnedPeopleRef.current = finalDeaths;
+
+        // Reset transition after animation
+        setTimeout(() => setBarTransition({ duration: 0 }), 1000);
+    };
+
+    const cancelSkip = () => {
+        setShowSkipConfirm(false);
     };
 
     const handleRestart = () => {
         if (!engineRef.current) return;
+
+        setBarTransition({ type: 'spring', stiffness: 20, damping: 10, mass: 0.5 }); // Enable animation for big jump
 
         // Reset State
         sessionStorage.setItem('narrative_simulation_completed', 'false');
@@ -367,6 +385,9 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
 
         // Trigger Re-Mount of Physics
         setResetTrigger(prev => prev + 1);
+
+        // Reset transition after animation
+        setTimeout(() => setBarTransition({ duration: 0 }), 1000);
     };
 
     // Gradually despawn motos when finale is reached
@@ -457,7 +478,7 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
                             animate={{
                                 width: `${Math.min((mortes / TARGET_PESSOAS) * 100, 100)}%`
                             }}
-                            transition={{ type: 'spring', stiffness: 20, damping: 10, mass: 0.5 }} // Smooth spring for filling
+                            transition={barTransition}
                             style={{
                                 height: '100%',
                                 backgroundColor: theme.colors.simulation.progressBar,
@@ -489,7 +510,7 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
 
                     {/* Right: Skip Button */}
                     <ControlButton
-                        onClick={handleSkip}
+                        onClick={handleSkipClick}
                         tooltip="Pular Simulação"
                         icon={
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -608,6 +629,74 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
                     </div>
 
                     <div ref={sceneRef} style={{ width: '100%', height: '100%' }} />
+
+                    {/* Confirm Skip Modal */}
+                    <AnimatePresence>
+                        {showSkipConfirm && (
+                            <div style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%',
+                                backgroundColor: 'rgba(0,0,0,0.8)',
+                                zIndex: 100,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                backdropFilter: 'blur(5px)'
+                            }}>
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.9 }}
+                                    style={{
+                                        backgroundColor: '#222',
+                                        padding: '2rem',
+                                        borderRadius: '8px',
+                                        maxWidth: '400px',
+                                        textAlign: 'center',
+                                        border: '1px solid #444',
+                                        boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
+                                    }}
+                                >
+                                    <h3 style={{ color: 'white', marginBottom: '1rem', fontSize: '1.2rem' }}>Pular Simulação?</h3>
+                                    <p style={{ color: '#ccc', marginBottom: '1.5rem', lineHeight: 1.5 }}>
+                                        Ao pular, você perderá parte da narrativa apresentada durante a simulação. Tem certeza que deseja continuar?
+                                    </p>
+                                    <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                                        <button
+                                            onClick={cancelSkip}
+                                            style={{
+                                                padding: '8px 16px',
+                                                borderRadius: '4px',
+                                                border: '1px solid #555',
+                                                backgroundColor: 'transparent',
+                                                color: '#ccc',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            Cancelar
+                                        </button>
+                                        <button
+                                            onClick={confirmSkip}
+                                            style={{
+                                                padding: '8px 16px',
+                                                borderRadius: '4px',
+                                                border: 'none',
+                                                backgroundColor: theme.colors.simulation.progressBar,
+                                                color: 'white',
+                                                fontWeight: 'bold',
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            Pular Mesmo Assim
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            </div>
+                        )}
+                    </AnimatePresence>
                 </div>
             </div>
         </div>
