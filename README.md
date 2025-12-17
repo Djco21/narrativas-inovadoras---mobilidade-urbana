@@ -12,8 +12,8 @@ O projeto usou varias ferramentas personalizadas para ajudar na iteração duran
 
 **Nota Importante**: Todo o código fonte da aplicação reside no diretório `mobilidade/`.
 
-1.  **Narrativa Baseada em Markdown (`mobilidade/src/narrative.md`)**:
-    Todo o conteúdo textual e a estrutura da história são gerados dinamicamente a partir de um único arquivo Markdown (`mobilidade/src/narrative.md`). Isso permite que escritores alterem a história diretamente sem precisar saber programar.
+1.  **Narrativa via Google Docs**:
+    Todo o conteúdo textual e a estrutura da história são gerados dinamicamente a partir de um documento Google Docs. Isso permite que escritores alterem a história diretamente sem precisar saber programar, com atualizações em tempo real.
 
 2.  **Sistema de Gatilhos por Card**:
     A movimentação do mapa (câmera) é controlada por **Gatilhos (Triggers)**.
@@ -29,28 +29,20 @@ O projeto usou varias ferramentas personalizadas para ajudar na iteração duran
 
 ### Ferramentas Internas
 
-#### 1. O Parser de Narrativa (`mobilidade/src/narrativeParser.js`)
+#### 1. Gestão de Conteúdo (Google Docs)
 
-Este utilitário lê o arquivo `mobilidade/src/narrative.md` e o converte em componentes React. Ele suporta sintaxes especiais:
+A narrativa é editada diretamente em um documento do Google Docs e buscada em tempo real na versão de deploy. Isso permite ajustes no texto sem necessidade de alterar o código. A estrutura da história é definida pela **Formatação do Google Docs**, enquanto elementos específicos usam sintaxe de texto cru.
 
-*   **Cards de Texto**: Blocos de texto que flutuam sobre o mapa.
-    *   Sintaxe: `[card:meu-id-unico]` (Opcional: se omitido, gera ID automático).
-    *   Alinhamento: Alterna automaticamente entre esquerda e direita.
-*   **Timestamp**: Adiciona um relógio digital ao card.
-    *   Sintaxe: `[10:30]` no início do bloco de texto.
-*   **Componentes React**: Injeta componentes complexos no meio da narrativa.
-    *   Sintaxe: `[component:nome-do-componente]`
-    *   Argumentos opcionais: Adcionando (), é possivel adiconar uma lista de argumentos de texto. Cada paragrafo markdown é um argumento, ou seja, os argumentos são separados com `\n\n`
-    *   Exemplos: `[component:title](Mobilidade)`, `
-    ```[component:moto-accident-simulation](
-        Texto 1
-
-        Texto 2
-
-        Texto 3
-    )```.
-*   **Imagens**:
-    *   Sintaxe: `@[caminho/para/imagem.png]`.
+*   **Estrutura (Cards e Componentes)**:
+    *   Para criar um novo Card ou Componente, use a formatação **Título 3 (Heading 3)** do Google Docs.
+    *   O texto desse título será usado como o ID ou Nome do componente (ex: `card:meu-id` ou `nome-do-componente`).
+    *   **Texto Corrido**: Para blocos de texto centralizados (não cards), use o título `text` (ou `text:id`).
+*   **Conteúdo**:
+    *   Todo texto entre um Título 3 e o próximo pertence àquele card/componente.
+*   **Sintaxe Especial (Texto Cru)**:
+    *   **Timestamp**: Escreva `[10:30]` diretamente no texto para adicionar o relógio.
+    *   **Argumentos de Componente**: Parágrafos de texto normal funcionam como argumentos.
+    *   **Imagens**: Use a sintaxe `@[caminho/para/imagem.png]`.
 
 #### 2. Configuração da História (`mobilidade/src/storyConfig.js`)
 
@@ -67,16 +59,18 @@ Para ativá-lo, certifique-se de estar em ambiente de desenvolvimento (`npm run 
 
 **Adicionando um novo trecho à história:**
 
-1.  Abra `mobilidade/src/narrative.md`.
-2.  Escreva:
+1.  Abra o **Google Doc da narrativa**.
+2.  Crie uma nova linha e aplique o estilo **Título 3**.
+3.  Escreva o ID do card no título: `card:minha-nova-cena`.
+4.  Abaixo, em **Texto Normal**, escreva:
     ```markdown
-    [card:minha-nova-cena]
     [08:00]
     Chegamos ao destino. A vista é impressionante.
     ```
-3.  Vá para o navegador, posicione a câmera do mapa onde deseja.
-4.  Copie os dados do HUD.
-5.  Abra `mobilidade/src/storyConfig.js` e adicione:
+5.  Vá para o navegador, posicione a câmera do mapa onde deseja.
+6.  Copie os dados do HUD.
+7.  Abra `mobilidade/src/storyConfig.js` e adicione:
+
     ```javascript
     'novo-capitulo': {
         camera: { center: [...], zoom: 15, pitch: 60, bearing: 0 },
