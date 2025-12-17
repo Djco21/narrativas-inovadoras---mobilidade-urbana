@@ -396,8 +396,85 @@ const NarrativeDisplay = ({ onChapterChange, narrativeItems }) => {
     // State for Dynamic Render Limiting (Scroll Blocking)
     const [renderLimit, setRenderLimit] = useState(Infinity);
 
+    // Scroll Hint Logic (appearing if user doesn't scroll for 10s)
+    const [showScrollHint, setShowScrollHint] = useState(false);
+    const [hasScrolled, setHasScrolled] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (window.scrollY > 10) {
+                setHasScrolled(true);
+                setShowScrollHint(false);
+                // Optimization: Remove listener once scrolled
+                window.removeEventListener('scroll', handleScroll);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    useEffect(() => {
+        if (!hasScrolled) {
+            const timer = setTimeout(() => {
+                setShowScrollHint(true);
+            }, 10000); // 10 seconds
+
+            return () => clearTimeout(timer);
+        }
+    }, [hasScrolled]);
+
     return (
         <>
+            {/* Scroll Hint UI */}
+            {/* Scroll Hint UI */}
+            <motion.div
+                initial={{ opacity: 0, y: 10, x: "-50%" }}
+                animate={{
+                    opacity: showScrollHint ? 1 : 0,
+                    y: showScrollHint ? 0 : 10,
+                    x: "-50%"
+                }}
+                transition={{ duration: 0.5 }}
+                style={{
+                    position: 'fixed',
+                    bottom: '2rem',
+                    left: '50%',
+                    // Transform handled by motion prop 'x'
+                    zIndex: 100,
+                    pointerEvents: 'none',
+                    color: 'white',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '8px',
+                    textShadow: '0 2px 4px rgba(0,0,0,0.8)'
+                }}
+            >
+                <div style={{
+                    backgroundColor: 'rgba(0,0,0,0.6)',
+                    padding: '8px 16px',
+                    borderRadius: '20px',
+                    backdropFilter: 'blur(4px)',
+                    fontSize: '0.9rem',
+                    letterSpacing: '0.05em',
+                    whiteSpace: 'nowrap'
+                }}>
+                    Role para baixo
+                </div>
+                <motion.div
+                    animate={{ y: [0, 8, 0] }}
+                    transition={{
+                        duration: 1.5,
+                        repeat: Infinity,
+                        repeatType: "loop",
+                        ease: "easeInOut"
+                    }}
+                    style={{ fontSize: '1.5rem' }}
+                >
+                    ↓
+                </motion.div>
+            </motion.div>
             {/* Overlay 1: Color Layer (Top of Blur, Bottom of Content) */}
             {/* This handles the initial White fade out */}
             <motion.div
