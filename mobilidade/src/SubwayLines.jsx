@@ -1,16 +1,21 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { theme } from './theme';
+import { motion, useAnimation } from 'framer-motion';
 
 const SubwayLines = ({ lines = [] }) => {
     const containerRef = useRef(null);
     const [paths, setPaths] = useState([]);
     const [stations, setStations] = useState([]);
+    const controls = useAnimation();
+
+    const prevHeightRef = useRef(0);
 
     const calculatePaths = () => {
         if (!containerRef.current) return;
 
         const containerRect = containerRef.current.getBoundingClientRect();
         const W = containerRect.width;
+        const H = containerRect.height;
         const newPaths = [];
         const newStations = [];
 
@@ -82,15 +87,6 @@ const SubwayLines = ({ lines = [] }) => {
                 // If next is Left Station, Highway is slightly Right of it? Or Left?
                 // Look at loop logic: 
                 // isLeftTrack (based on current/next average or logic) -> highwayX = min - offset.
-                // Let's stick to the rule: Highway is "Central" relative to stations?
-                // Actually, the loop determines highwayX dynamically per segment.
-                // Let's assume we want to hit the SAME highway as segment 0->1 would have.
-                // If Point 1 is at X1. Current (Start) is unknown. 
-                // Let's pick highwayX = next.x + offset (if Left track) or next.x - offset?
-                // Visual reference: Orange (Right) -> Highway is to the Left of it (Center-wards).
-                // Blue (Left) -> Highway is to the Right of it (Center-wards).
-                // So if Left Track: HighwayX > Next.x.
-                // Loop logic was: if isLeftTrack (x < mid), highwayX = min - offset. 
                 // Wait, logic says `min - offset` -> Further LEFT. Visual artifact shows highway on outside?
                 // Let's re-read loop:
                 // check `isLeftTrack = current.x < mid`.
@@ -242,6 +238,49 @@ const SubwayLines = ({ lines = [] }) => {
             newPaths.push({ d, color: line.color, width: line.width || 6 });
         });
 
+        const totalStops = lines.reduce((acc, line) => acc + line.stops.length, 0);
+        // Approximation: newStations only tracks valid stations, but stops includes control points sometimes
+        // Let's count how many IDs we looked for vs found.
+        let foundCount = 0;
+        let expectedCount = 0;
+        lines.forEach(l => {
+            l.stops.forEach(id => {
+                // Ignore virtual IDs
+                if (id.includes('line-start') || id.includes('path-control')) return;
+
+                expectedCount++;
+                if (document.getElementById(id)) foundCount++;
+            });
+        });
+
+
+        // Use a ref to track retries to prevent infinite looping
+        if (foundCount < expectedCount) {
+            if (!calculatePaths.retryCount) calculatePaths.retryCount = 0;
+            if (calculatePaths.retryCount < 10) {
+                calculatePaths.retryCount++;
+                console.warn(`[SubwayLines] Missing stations: found ${foundCount} / ${expectedCount}. Retry ${calculatePaths.retryCount}/10 in 500ms.`);
+                setTimeout(() => requestAnimationFrame(calculatePaths), 500);
+            } else {
+                console.error('[SubwayLines] Max retries reached. Giving up on finding all stations. Forcing visibility.');
+                // Fault Tolerance: Force show lines so user isn't left with empty screen
+                controls.start({ clipPath: 'inset(0% 0% 0% 0%)', transition: { duration: 0.5 } });
+                if (H > 0) prevHeightRef.current = H;
+            }
+        } else {
+            calculatePaths.retryCount = 0; // Reset on success
+        }
+
+        /* 
+           We move 'const prevHeight = ...' AFTER the retry block check. 
+           If retry scheduled, we effectively exit OR we continue rendering whatever we have.
+           But we must ensure we don't animate partial state as "Complete".
+        */
+
+        const prevHeight = prevHeightRef.current;
+        const heightChanged = Math.abs(H - prevHeight) > 50;
+        const isFirstLoad = prevHeight === 0;
+
         // Deep check if update is needed
         setPaths(prev => {
             if (JSON.stringify(prev) === JSON.stringify(newPaths)) return prev;
@@ -251,6 +290,45 @@ const SubwayLines = ({ lines = [] }) => {
             if (JSON.stringify(prev) === JSON.stringify(newStations)) return prev;
             return newStations;
         });
+
+        // Only animate if height changed significantly OR it's the first load
+        if ((heightChanged || isFirstLoad) && newPaths.length > 0) {
+            // Set start state (instant reveal of off-screen top part)
+            // Logic: Instant reveal for parts "above" the viewport, animate the rest.
+            // containerRect.top is distance from viewport top to container top.
+            // If container is above viewport, .top is negative.
+            // visibleHeight is roughly -containerRect.top.
+            const visibleHeight = Math.max(0, -containerRect.top);
+
+            // Clamp to H 
+            const validVisibleHeight = Math.min(H, visibleHeight);
+
+            // Inset from BOTTOM. We want to show 'validVisibleHeight' amount from the top instantly.
+            // So the HIDDEN amount (from bottom) is H - validVisibleHeight.
+            const hiddenHeight = Math.max(0, H - validVisibleHeight);
+
+            // Inset Percentage
+            const startInset = H > 0 ? (hiddenHeight / H) * 100 : 100;
+
+            // Animation Velocity
+            const velocity = 800; // px/s
+            const duration = hiddenHeight / velocity;
+
+            controls.set({ clipPath: `inset(0% 0% ${startInset}% 0%)` });
+
+            // Animate to full reveal
+            controls.start({
+                clipPath: 'inset(0% 0% 0% 0%)',
+                transition: { duration: duration, ease: 'linear' }
+            });
+
+            // Create a stable marker
+            prevHeightRef.current = H;
+        } else if (H > prevHeight && newPaths.length > 0) {
+            // If height grew a little bit (e.g. 20px) but not enough to trigger full re-anim,
+            // just update the ref so we don't drift.
+            prevHeightRef.current = H;
+        }
     };
 
     const linesKey = JSON.stringify(lines);
@@ -283,8 +361,10 @@ const SubwayLines = ({ lines = [] }) => {
     }, [linesKey]);
 
     return (
-        <svg
+        <motion.div
             ref={containerRef}
+            initial={{ clipPath: 'inset(0% 0% 100% 0%)' }}
+            animate={controls}
             style={{
                 position: 'absolute',
                 top: 0,
@@ -296,24 +376,32 @@ const SubwayLines = ({ lines = [] }) => {
                 overflow: 'visible'
             }}
         >
-            {paths.map((p, i) => (
-                <path
-                    key={i}
-                    d={p.d}
-                    stroke={p.color}
-                    strokeWidth={p.width}
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    opacity="1"
-                />
-            ))}
-            {stations.map((s, i) => (
-                <g key={i} transform={`translate(${s.x}, ${s.y})`}>
-                    <circle r="9" fill={theme.colors.transport.stations.fill} stroke={theme.colors.transport.stations.stroke} strokeWidth="5" />
-                </g>
-            ))}
-        </svg>
+            <svg
+                style={{
+                    width: '100%',
+                    height: '100%',
+                    overflow: 'visible'
+                }}
+            >
+                {paths.map((p, i) => (
+                    <path
+                        key={i}
+                        d={p.d}
+                        stroke={p.color}
+                        strokeWidth={p.width}
+                        fill="none"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        opacity="1"
+                    />
+                ))}
+                {stations.map((s, i) => (
+                    <g key={i} transform={`translate(${s.x}, ${s.y})`}>
+                        <circle r="9" fill={theme.colors.transport.stations.fill} stroke={theme.colors.transport.stations.stroke} strokeWidth="5" />
+                    </g>
+                ))}
+            </svg>
+        </motion.div>
     );
 };
 
