@@ -25,17 +25,18 @@ const DevCameraHUD = ({ map }) => {
         // Initial update
         updateStats();
 
-        // Attach listeners
-        map.on('move', updateStats);
-        map.on('zoom', updateStats);
-        map.on('pitch', updateStats);
-        map.on('rotate', updateStats);
+        // Attach listeners - ONLY trigger at the end of interactions/animations
+        // This effectively pauses updates during 'flyTo' or dragging, eliminating render cost during motion.
+        map.on('moveend', updateStats);
+        map.on('zoomend', updateStats);
+        map.on('pitchend', updateStats);
+        map.on('rotateend', updateStats);
 
         return () => {
-            map.off('move', updateStats);
-            map.off('zoom', updateStats);
-            map.off('pitch', updateStats);
-            map.off('rotate', updateStats);
+            map.off('moveend', updateStats);
+            map.off('zoomend', updateStats);
+            map.off('pitchend', updateStats);
+            map.off('rotateend', updateStats);
         };
     }, [map]);
 
