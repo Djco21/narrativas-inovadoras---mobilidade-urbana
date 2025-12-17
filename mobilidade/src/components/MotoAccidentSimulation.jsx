@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Matter from 'matter-js';
 import { motion, AnimatePresence } from 'framer-motion';
-
+import { theme } from '../theme';
 import motoAmarela from '../assets/moto_amarela.png';
 import motoAzul from '../assets/moto_azul.png';
 import motoLaranja from '../assets/moto_laranja.png';
@@ -65,7 +65,7 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
     const createBounds = () => {
         if (!sceneRef.current || !engineRef.current || !renderRef.current) return;
         const w = sceneRef.current.clientWidth;
-        const h = renderRef.current.options.height;
+        const h = sceneRef.current.clientHeight;
 
         const extraLeft = 200;
         const thickness = 80;
@@ -291,7 +291,7 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
             engine: engine,
             options: {
                 width: sceneRef.current.clientWidth,
-                height: 600,
+                height: sceneRef.current.clientHeight,
                 wireframes: false,
                 background: '#111',
                 pixelRatio: 1,
@@ -408,6 +408,8 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
                 position: 'relative',
                 width: 'calc(100vw - (2 * var(--card-margin)))', // 10vw on each side
                 height: '600px',
+                display: 'flex',
+                flexDirection: 'column',
                 backgroundColor: '#111',
                 overflow: 'hidden',
                 borderRadius: '8px',
@@ -415,15 +417,19 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
                 boxShadow: '0 4px 20px rgba(0,0,0,0.5)'
             }}>
 
-                {/* Control Buttons (Top Right) */}
+                {/* --- HEADER (Controls) --- */}
                 <div style={{
-                    position: 'absolute',
-                    top: '1rem',
-                    right: '1rem',
-                    zIndex: 20,
+                    height: '64px',
+                    width: '100%',
                     display: 'flex',
-                    gap: '8px'
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0 1rem',
+                    backgroundColor: '#1a1a1a', // Slightly lighter header
+                    borderBottom: '1px solid #333',
+                    zIndex: 50
                 }}>
+                    {/* Left: Restart Button */}
                     <ControlButton
                         onClick={handleRestart}
                         tooltip="Reiniciar Simulação"
@@ -434,6 +440,54 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
                             </svg>
                         }
                     />
+
+                    {/* Center: Progress Bar */}
+                    <div style={{
+                        flex: 1,
+                        position: 'relative', // Context for absolute children
+                        height: '8px',
+                        margin: '0 1.5rem',
+                        backgroundColor: 'rgba(255,255,255,0.1)',
+                        borderRadius: '2px',
+                        overflow: 'hidden'
+                    }}>
+                        {/* 1. Underlying Single Animated Bar */}
+                        <motion.div
+                            initial={{ width: 0 }}
+                            animate={{
+                                width: `${Math.min((mortes / TARGET_PESSOAS) * 100, 100)}%`
+                            }}
+                            transition={{ type: 'spring', stiffness: 20, damping: 10, mass: 0.5 }} // Smooth spring for filling
+                            style={{
+                                height: '100%',
+                                backgroundColor: theme.colors.simulation.progressBar,
+                            }}
+                        />
+
+                        {/* 2. Divider Mask Overlay */}
+                        <div style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            display: 'flex',
+                            pointerEvents: 'none'
+                        }}>
+                            {textSections.map((_, idx) => (
+                                <div
+                                    key={idx}
+                                    style={{
+                                        flex: 1,
+                                        borderRight: idx < textSections.length - 1 ? '2px solid #1a1a1a' : 'none', // Color matches header bg
+                                        height: '100%'
+                                    }}
+                                />
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Right: Skip Button */}
                     <ControlButton
                         onClick={handleSkip}
                         tooltip="Pular Simulação"
@@ -446,101 +500,115 @@ const MotoAccidentSimulation = ({ index, setRenderLimit, content }) => {
                     />
                 </div>
 
-                {/* Death Counter - Animated */}
-                <motion.div
-                    initial={false}
-                    animate={isFinale ? {
-                        top: '50%',
-                        scale: 1.5, // Reduced from 2.5
-                        opacity: 1
-                    } : {
-                        top: '18%',
-                        scale: 1,
-                        opacity: 1
-                    }}
-                    transition={{
-                        duration: 1.5,
-                        ease: "easeInOut"
-                    }}
-                    style={{
-                        position: 'absolute',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        x: '-50%',
-                        y: '-50%',
-                        color: '#ffffff', // Plain white
-                        zIndex: 30,
-                        fontWeight: 700,
-                        textAlign: 'center',
-                        pointerEvents: 'none',
-                        textShadow: '0 0 20px rgba(0,0,0,0.8)' // Added shadow
-                    }}
-                >
-                    <span style={{ display: 'block', fontSize: '96px', lineHeight: 1 }}>{mortes}</span>
-                    <span style={{ display: 'block', fontSize: '24px', opacity: 0.95, maxWidth: '700px', margin: '0 auto' }}>
-                        mortes por acidente de moto nesse ano
-                    </span>
-                </motion.div>
-
-                {/* Shadow Overlay to Contrast Text */}
-                <motion.div
-                    animate={{
-                        background: isFinale
-                            ? 'radial-gradient(ellipse at center, rgba(0,0,0,0.9) 30%, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0) 85%)'
-                            : 'radial-gradient(ellipse at center, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0) 80%)'
-                    }}
-                    transition={{ duration: 1.5 }}
-                    style={{
-                        position: 'absolute',
-                        top: '0',
-                        left: '0',
-                        width: '100%',
-                        height: '100%',
-                        zIndex: 15,
-                        pointerEvents: 'none',
-                    }}
-                />
-
-                {/* Text Section - Centered with Fade Transition */}
+                {/* --- BODY (Simulation) --- */}
                 <div style={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    width: '80%',
-                    maxWidth: '600px',
-                    zIndex: 20,
-                    textAlign: 'center',
-                    pointerEvents: 'none',
-                    minHeight: '100px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
+                    position: 'relative',
+                    flex: 1,
+                    width: '100%',
+                    overflow: 'hidden'
                 }}>
-                    <AnimatePresence mode='wait'>
-                        {/* Show text only if NOT in finale, or let it fade out when isFinale becomes true */}
-                        {!isFinale && textSections.length > 0 && activeSectionIndex < textSections.length && (
+
+                    {/* Death Counter - Animated */}
+                    <AnimatePresence>
+                        {mortes > 0 && (
                             <motion.div
-                                key={activeSectionIndex}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                transition={{ duration: 0.5 }}
+                                initial={{ opacity: 1, scale: 1, top: '25%' }} // Instant appearance
+                                animate={isFinale ? {
+                                    top: '50%',
+                                    scale: 1.5,
+                                    opacity: 1
+                                } : {
+                                    top: '25%',
+                                    scale: 1,
+                                    opacity: 1
+                                }}
+                                exit={{ opacity: 0, scale: 0.5 }}
+                                transition={{
+                                    duration: 1.5,
+                                    ease: "easeInOut"
+                                }}
                                 style={{
-                                    color: '#ddd',
-                                    fontSize: '1.6rem',
-                                    lineHeight: 1.6,
-                                    textShadow: '0 0 40px rgba(0,0,0,1)', // Strong diffuse shadow
-                                    fontWeight: 500
+                                    position: 'absolute',
+                                    left: '50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    x: '-50%',
+                                    y: '-50%',
+                                    color: '#ffffff', // Plain white
+                                    zIndex: 30,
+                                    fontWeight: 700,
+                                    textAlign: 'center',
+                                    pointerEvents: 'none',
+                                    textShadow: '0 0 20px rgba(0,0,0,0.8)' // Added shadow
                                 }}
                             >
-                                {formatSimText(textSections[activeSectionIndex])}
+                                <span style={{ display: 'block', fontSize: '96px', lineHeight: 1 }}>{mortes}</span>
+                                <span style={{ display: 'block', fontSize: '24px', opacity: 0.95, maxWidth: '700px', margin: '0 auto' }}>
+                                    mortes por acidente de moto nesse ano
+                                </span>
                             </motion.div>
                         )}
                     </AnimatePresence>
-                </div>
 
-                <div ref={sceneRef} style={{ width: '100%', height: '100%' }} />
+                    {/* Shadow Overlay to Contrast Text */}
+                    <motion.div
+                        animate={{
+                            background: isFinale
+                                ? 'radial-gradient(ellipse at center, rgba(0,0,0,0.9) 30%, rgba(0,0,0,0.7) 60%, rgba(0,0,0,0) 85%)'
+                                : 'radial-gradient(ellipse at center, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0) 80%)'
+                        }}
+                        transition={{ duration: 1.5 }}
+                        style={{
+                            position: 'absolute',
+                            top: '0',
+                            left: '0',
+                            width: '100%',
+                            height: '100%',
+                            zIndex: 15,
+                            pointerEvents: 'none',
+                        }}
+                    />
+
+                    {/* Text Section - Centered with Fade Transition */}
+                    <div style={{
+                        position: 'absolute',
+                        top: '60%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: '80%',
+                        maxWidth: '600px',
+                        zIndex: 20,
+                        textAlign: 'center',
+                        pointerEvents: 'none',
+                        minHeight: '100px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}>
+                        <AnimatePresence mode='wait'>
+                            {/* Show text only if NOT in finale, or let it fade out when isFinale becomes true */}
+                            {!isFinale && textSections.length > 0 && activeSectionIndex < textSections.length && (
+                                <motion.div
+                                    key={activeSectionIndex}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.5 }}
+                                    style={{
+                                        color: '#ddd',
+                                        fontSize: '1.6rem',
+                                        lineHeight: 1.6,
+                                        textShadow: '0 0 40px rgba(0,0,0,1)', // Strong diffuse shadow
+                                        fontWeight: 500
+                                    }}
+                                >
+                                    {formatSimText(textSections[activeSectionIndex])}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+
+                    <div ref={sceneRef} style={{ width: '100%', height: '100%' }} />
+                </div>
             </div>
         </div>
     );

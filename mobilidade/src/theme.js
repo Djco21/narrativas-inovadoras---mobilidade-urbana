@@ -17,6 +17,9 @@ export const theme = {
             backdropFilter: 'blur(16px) grayscale(80%)', // Blur + Desaturate
             conclusionBold: '#FFFFFF' // Special bold color for conclusion (Credits, etc.)
         },
+        simulation: {
+            progressBar: '#FF0000'
+        },
         transport: {
             busLine: '#9d00ff',
             metroLine: '#e70505',
