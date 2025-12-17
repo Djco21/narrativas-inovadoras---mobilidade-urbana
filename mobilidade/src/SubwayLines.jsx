@@ -106,48 +106,43 @@ const SubwayLines = ({ lines = [] }) => {
             }
 
             // Define where the diagonal meets the highway (Vertical transition)
-            // Let's fix this at y = 150px (matching typical vSegment).
-            const transitionY = 150;
+            // We want lines to enter from the SIDES (x < 0 or x > W), not the TOP.
+            // To ensure side entry, the diagonal must reach the side edge (x=0/W) at y > 0.
+            // Left: y = x - highwayX + transitionY. At x=0, y = transitionY - highwayX.
+            // Right: y = -x + highwayX + transitionY. At x=W, y = transitionY - (W - highwayX).
 
-            // Back-project 45 degrees from (highwayX, transitionY)
+            const startOffset = 50; // Tolerance for line thickness & off-screen start
+            let minTransitionY = 150;
+
+            // Calculate required transitionY to hit side at y >= -10 (safely visible)
+            if (isLeftTrack) {
+                // distinct logic to ensure we prefer side entry
+                // Need transitionY >= highwayX - 10
+                minTransitionY = Math.max(150, highwayX - 20);
+            } else {
+                // Need transitionY >= (W - highwayX) - 10
+                minTransitionY = Math.max(150, (W - highwayX) - 20);
+            }
+
+            // Clamp max transitionY to not exceed the first station (minus some space)
+            // But we don't have perfect info on next station Y availability without complex logic.
+            // We'll trust the layout usually has space or accept top-entry if squeezed.
+            const transitionY = Math.min(minTransitionY, next.y - 50);
+
             let startX, startY;
 
             if (isLeftTrack) {
                 // Blue Line (Left)
-                // We want to enter from Top-Left or Top-Center?
-                // User said "Start 0%" -> Top Left corner.
-                // Path: Start -> Down-Right (Slope +1) -> Highway.
-                // Vector: (1, 1). Backwards: (-1, -1).
-                // Ray: x = highwayX - delta, y = transitionY - delta.
-                // Intersect with y=0: delta = transitionY. x = highwayX - transitionY.
-                const projectedX = highwayX - transitionY;
-                if (projectedX >= 0) {
-                    startX = projectedX;
-                    startY = 0;
-                } else {
-                    // Hits Left Edge (x=0) first.
-                    // 0 = highwayX - delta => delta = highwayX. 
-                    // y = transitionY - highwayX.
-                    startX = 0;
-                    startY = transitionY - highwayX;
-                }
+                // Force start off-screen to the Left
+                startX = -startOffset;
+                // y = x - highwayX + transitionY
+                startY = startX - highwayX + transitionY;
             } else {
                 // Orange Line (Right)
-                // Path: Start -> Down-Left (Slope -1) -> Highway.
-                // Vector: (-1, 1). Backwards: (1, -1).
-                // Ray: x = highwayX + delta, y = transitionY - delta.
-                // Intersect with y=0: delta = transitionY. x = highwayX + transitionY.
-                const projectedX = highwayX + transitionY;
-                if (projectedX <= W) {
-                    startX = projectedX;
-                    startY = 0;
-                } else {
-                    // Hits Right Edge (x=W) first.
-                    // W = highwayX + delta => delta = W - highwayX.
-                    // y = transitionY - (W - highwayX).
-                    startX = W;
-                    startY = transitionY - (W - highwayX);
-                }
+                // Force start off-screen to the Right
+                startX = W + startOffset;
+                // y = -x + highwayX + transitionY
+                startY = -startX + highwayX + transitionY;
             }
 
             // Override Point 0
@@ -261,21 +256,30 @@ const SubwayLines = ({ lines = [] }) => {
     const linesKey = JSON.stringify(lines);
 
     useEffect(() => {
+        // Debounce function to limit calculation frequency
+        let timeoutId;
+        const debouncedCalculate = () => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                requestAnimationFrame(calculatePaths);
+            }, 100);
+        };
+
+        // Initial calculation (immediate, then debounced for safety on layout shift)
         calculatePaths();
-        const handleResize = () => calculatePaths();
-        window.addEventListener('resize', handleResize);
-        const ro = new ResizeObserver(handleResize);
+        // Backup run for late loading fonts/images affecting layout
+        const initialTimer = setTimeout(calculatePaths, 500);
+
+        window.addEventListener('resize', debouncedCalculate);
+        const ro = new ResizeObserver(debouncedCalculate);
         if (containerRef.current) ro.observe(containerRef.current);
 
         return () => {
-            window.removeEventListener('resize', handleResize);
+            window.removeEventListener('resize', debouncedCalculate);
             ro.disconnect();
+            clearTimeout(timeoutId);
+            clearTimeout(initialTimer);
         };
-    }, [linesKey]);
-
-    useEffect(() => {
-        const timer = setTimeout(calculatePaths, 100);
-        return () => clearTimeout(timer);
     }, [linesKey]);
 
     return (
