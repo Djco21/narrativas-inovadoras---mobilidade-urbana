@@ -6,7 +6,6 @@
   margin: 0;
   padding: 0;
   font-family: "Helvetica Neue", "Helvetica", "Inter", "Arial", sans-serif;
-  /* Set global font */
 }
 
 html {
@@ -20,26 +19,23 @@ body {
   overflow-x: hidden;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
-
-@keyframes blink {
-  0% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
-  }
-}
-
 :root {
   --card-margin: 10vw;
-  /* Configurable margin */
 }
+
+/* 
+   ANIMATIONS
+*/
+
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/*
+   BACKGROUND MAP
+*/
 
 .map-container {
   position: fixed;
@@ -50,6 +46,10 @@ body {
   z-index: 0;
 }
 
+/*
+   CONTENT
+*/
+
 .content-container {
   position: relative;
   z-index: 10;
@@ -58,101 +58,173 @@ body {
   pointer-events: none;
   display: flex;
   flex-direction: column;
-  /* align-items: center; Removed to allow individual alignment */
-  /* padding-top: 50vh; REMOVED to prevent overflow above strip */
-  /* padding-bottom: 50vh; REMOVED to fix duplicate spacing */
 }
 
-/* Base card style */
-.section {
-  width: 30%;
-  max-width: 600px;
-  min-height: 200px;
-  margin-top: 5vh;
-  margin-bottom: 5vh;
+/*
+   CARD BASE (MOBILE FIRST)
+*/
 
-  align-self: center;
-  /* Default to center */
+.section {
+  width: 90%;
+  max-width: 100%;
+  min-height: 180px;
+  margin: 4vh auto;
+
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 
-  font-size: 1 rem;
+  font-size: 1rem;
   color: #333;
-  /* Darker text for better contrast on white cards */
   pointer-events: auto;
-  padding: 2rem;
+  padding: 1.5rem;
   text-align: center;
   border-radius: 16px;
-  /* Rounded corners like the skeleton */
 }
 
-/* Alignment Modifiers */
-.card-left {
-  align-self: flex-start;
-  margin-left: var(--card-margin);
-  /* Margin from left edge */
-}
+/* 
+   CARD VARIANTS
+*/
 
-.card-right {
-  align-self: flex-end;
-  margin-right: var(--card-margin);
-  /* Margin from right edge */
-}
-
-/* Filled Card Style (Glass/Solid) */
 .card-filled {
   background: rgba(255, 255, 255, 0.9);
-  /* High opacity white */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   border: none;
-  font-size: 1rem;
   text-align: justify;
 }
 
-/* Transparent Card Style (Text Only) */
 .card-transparent {
   background: transparent;
   border: none;
   box-shadow: none;
   color: #333;
-  font-size: 1rem;
-  /* Ensure text is readable against the white strip */
 }
 
-/* Outlined Card Style (Border only) */
 .card-outlined {
   background: transparent;
   border: 4px solid #333;
-  /* Thick dark border */
   color: #333;
-  /* Add a text shadow or background for readability if needed over map */
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
 }
 
-/* Title specific style */
+/*
+   TITLES
+*/
+
 h1 {
   font-weight: bold;
   letter-spacing: -1px;
-  /* Tight tracking like Helvetica titles often have */
   margin: 0;
   position: relative;
-  /* Ensure title sits above the strip */
   z-index: 2;
 }
+
+/*
+   GRADIENT STRIP
+*/
 
 .gradient-strip {
   position: absolute;
   width: 100%;
-  /* Full width of parent */
   left: 50%;
   transform: translateX(-50%);
-  /* Center horizontally relative to parent */
   z-index: 1;
-  /* Behind text (z-index 2) but inside card */
-
-  /* Background is now handled via inline styles in the component */
-
   pointer-events: none;
+}
+
+/*
+  MOBILE (at 600px)
+*/
+
+@media (max-width: 600px) {
+  html {
+    font-size: 10pt;
+  }
+
+  :root {
+    --card-margin: 7vw;
+  }
+
+  .section {
+    width: 92%;
+    padding: 1.25rem;
+    margin: 3vh auto;
+    text-align: left;
+  }
+
+  .card-left {
+    align-self: flex-start;
+    margin-left: var(--card-margin);
+    max-width: 70vw;
+  }
+
+  .card-right {
+    align-self: flex-end;
+    margin-right: var(--card-margin);
+    max-width: 70vw;
+  }
+
+  /*.card-left,
+  .card-right {
+    align-self: center;
+    margin: 0 auto;
+  }*/
+}
+
+/*
+  TABLET (601px - 1024px)
+*/
+
+@media (min-width: 601px) and (max-width: 1024px) {
+  :root {
+    --card-margin: 6vw;
+  }
+
+  .section {
+    width: 70%;
+    max-width: 720px;
+    padding: 2rem;
+  }
+
+  .card-left {
+    align-self: flex-start;
+    margin-left: var(--card-margin);
+  }
+
+  .card-right {
+    align-self: flex-end;
+    margin-right: var(--card-margin);
+  }
+}
+
+/*
+  DESKTOP (1025px+)
+*/
+
+@media (min-width: 1025px) {
+  :root {
+    --card-margin: 10vw;
+  }
+
+  .section {
+    width: 30%;
+    max-width: 600px;
+    min-height: 200px;
+    padding: 2rem;
+    
+
+    margin-top: 5vh;
+    margin-bottom: 5vh;
+  }
+
+  .card-left {
+    align-self: flex-start;
+    margin-left: var(--card-margin);
+  }
+
+  .card-right {
+    align-self: flex-end;
+    margin-right: var(--card-margin);
+  }
 }
