@@ -179,11 +179,12 @@ const ProseText = ({ item, forwardRef }) => {
                         margin: '10vh auto',
                         padding: '2rem 10vw',
                         textAlign: 'justify',
-                        fontSize: '1.2rem',
+                        fontSize: 'clamp(0.95rem, 1.1vw, 1.2rem)',
                         lineHeight: '1.8',
                         color: theme.colors.narrative.text,
                         background: 'transparent',
-                        position: 'relative', // Fix framer-motion warning
+                        position: 'relative',
+                        boxSizing: 'border-box' // Fix framer-motion warning
                         // textShadow removed as requested
                     }}>
                     {paragraphs.map((para, i) => (
